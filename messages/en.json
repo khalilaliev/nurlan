@@ -73,7 +73,8 @@
     "errorCredentials": "Wrong email or password.",
     "errorGeneric": "Something went wrong.",
     "twitch": "Continue with Twitch",
-    "or": "or"
+    "google": "Continue with Google",
+    "or": "or continue with"
   },
   "rules": {
     "title": "Before you publish",

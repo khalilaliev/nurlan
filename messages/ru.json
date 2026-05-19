@@ -73,7 +73,8 @@
     "errorCredentials": "Неверный email или пароль.",
     "errorGeneric": "Что-то пошло не так.",
     "twitch": "Продолжить через Twitch",
-    "or": "или"
+    "google": "Продолжить через Google",
+    "or": "или через"
   },
   "rules": {
     "title": "Перед публикацией",

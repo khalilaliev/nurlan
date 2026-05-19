@@ -5,7 +5,11 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { TwitchButton, OrSeparator } from "@/components/twitch-button";
+import {
+  TwitchButton,
+  GoogleButton,
+  OrSeparator,
+} from "@/components/oauth-buttons";
 import { signIn } from "@/app/actions/auth";
 
 export function LoginForm() {
@@ -15,8 +19,6 @@ export function LoginForm() {
 
   return (
     <div className="space-y-4">
-      <TwitchButton />
-      <OrSeparator />
       <form
         action={async (fd) => {
           setSubmitting(true);
@@ -52,12 +54,20 @@ export function LoginForm() {
         >
           {t("submitLogin")}
         </Button>
-        <p className="text-center text-xs text-[var(--color-foreground-muted)]">
-          <Link href="/signup" className="hover:text-[var(--color-foreground)]">
-            {t("switchToSignup")}
-          </Link>
-        </p>
       </form>
+
+      <OrSeparator />
+
+      <div className="space-y-3">
+        <TwitchButton />
+        <GoogleButton />
+      </div>
+
+      <p className="text-center text-xs text-[var(--color-foreground-muted)] pt-2">
+        <Link href="/signup" className="hover:text-[var(--color-foreground)]">
+          {t("switchToSignup")}
+        </Link>
+      </p>
     </div>
   );
 }
