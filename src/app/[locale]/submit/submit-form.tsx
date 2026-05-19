@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { RulesModal } from "@/components/rules-modal";
 import { createStory } from "@/app/actions/stories";
+
+const STORAGE_KEY = "nurlan:submit-draft";
+
+type Draft = {
+  title?: string;
+  body?: string;
+  category_slug?: string;
+  tags?: string;
+  is_anonymous?: boolean;
+};
 
 export function SubmitForm({
   categories,
@@ -20,14 +30,81 @@ export function SubmitForm({
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [accepted, setAccepted] = useState(rulesAccepted);
+  const acceptedRef = useRef(rulesAccepted);
   const [showRules, setShowRules] = useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
 
-  const submit = async (fd: FormData) => {
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [category, setCategory] = useState("");
+  const [tags, setTags] = useState("");
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [restored, setRestored] = useState(false);
+
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const draft = JSON.parse(raw) as Draft;
+        if (typeof draft.title === "string") setTitle(draft.title);
+        if (typeof draft.body === "string") setBody(draft.body);
+        if (typeof draft.category_slug === "string")
+          setCategory(draft.category_slug);
+        if (typeof draft.tags === "string") setTags(draft.tags);
+        if (typeof draft.is_anonymous === "boolean")
+          setIsAnonymous(draft.is_anonymous);
+      }
+    } catch {
+      // ignore corrupted draft
+    }
+    setRestored(true);
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  useEffect(() => {
+    if (!restored) return;
+    try {
+      const empty =
+        !title && !body && !category && !tags && !isAnonymous;
+      if (empty) {
+        localStorage.removeItem(STORAGE_KEY);
+        return;
+      }
+      const draft: Draft = {
+        title,
+        body,
+        category_slug: category,
+        tags,
+        is_anonymous: isAnonymous,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+    } catch {
+      // localStorage quota or disabled
+    }
+  }, [restored, title, body, category, tags, isAnonymous]);
+
+  const clearDraft = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // ignore
+    }
+  };
+
+  const buildFormData = (): FormData => {
+    const fd = new FormData();
+    fd.set("title", title);
+    fd.set("body", body);
+    fd.set("category_slug", category);
+    fd.set("tags", tags);
+    if (isAnonymous) fd.set("is_anonymous", "on");
+    return fd;
+  };
+
+  const submit = async () => {
     setSubmitting(true);
     setError(null);
-    const res = await createStory(fd);
+    const res = await createStory(buildFormData());
     setSubmitting(false);
     if (res && "error" in res && res.error) {
       const key = res.error as "errorAuth" | "errorGeneric";
@@ -35,19 +112,28 @@ export function SubmitForm({
       return;
     }
     if (res && "id" in res && typeof res.id === "string") {
+      clearDraft();
       router.push(`/story/${res.id}`);
     }
   };
 
+  const handleClear = () => {
+    setTitle("");
+    setBody("");
+    setCategory("");
+    setTags("");
+    setIsAnonymous(false);
+    clearDraft();
+  };
+
   return (
     <form
-      ref={formRef}
-      action={async (fd) => {
-        if (!accepted) {
+      action={async () => {
+        if (!acceptedRef.current) {
           setShowRules(true);
           return;
         }
-        await submit(fd);
+        await submit();
       }}
       className="space-y-5"
     >
@@ -55,20 +141,20 @@ export function SubmitForm({
         open={showRules}
         onCancel={() => setShowRules(false)}
         onAccepted={() => {
-          setAccepted(true);
+          acceptedRef.current = true;
           setShowRules(false);
-          if (formRef.current) {
-            const fd = new FormData(formRef.current);
-            void submit(fd);
-          }
+          void submit();
         }}
       />
+
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-[var(--color-foreground-muted)] uppercase tracking-wider">
           {t("fieldTitle")}
         </label>
         <Input
           name="title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           required
           minLength={3}
           maxLength={200}
@@ -82,8 +168,9 @@ export function SubmitForm({
         </label>
         <select
           name="category_slug"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
           required
-          defaultValue=""
           className="flex h-11 w-full rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 text-sm focus-visible:outline-none focus-visible:border-[var(--color-accent)]"
         >
           <option value="" disabled>
@@ -103,6 +190,8 @@ export function SubmitForm({
         </label>
         <Textarea
           name="body"
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
           required
           minLength={20}
           maxLength={50000}
@@ -118,6 +207,8 @@ export function SubmitForm({
         </label>
         <Input
           name="tags"
+          value={tags}
+          onChange={(e) => setTags(e.target.value)}
           maxLength={200}
           placeholder={t("fieldTagsPlaceholder")}
         />
@@ -127,24 +218,37 @@ export function SubmitForm({
         <input
           type="checkbox"
           name="is_anonymous"
+          checked={isAnonymous}
+          onChange={(e) => setIsAnonymous(e.target.checked)}
           className="h-4 w-4 rounded border-[var(--color-border-strong)] bg-[var(--color-surface)] accent-[var(--color-accent)]"
         />
         {t("anonymous")}
       </label>
 
-      {error && (
-        <p className="text-sm text-[var(--color-accent)]">{error}</p>
-      )}
+      {error && <p className="text-sm text-[var(--color-accent)]">{error}</p>}
 
-      <Button
-        type="submit"
-        variant="accent"
-        size="lg"
-        disabled={submitting}
-        className="w-full"
-      >
-        {submitting ? t("submitting") : t("submit")}
-      </Button>
+      <div className="flex items-center gap-3">
+        <Button
+          type="submit"
+          variant="accent"
+          size="lg"
+          disabled={submitting}
+          className="flex-1"
+        >
+          {submitting ? t("submitting") : t("submit")}
+        </Button>
+        {(title || body || category || tags || isAnonymous) && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="lg"
+            onClick={handleClear}
+            disabled={submitting}
+          >
+            ✕
+          </Button>
+        )}
+      </div>
     </form>
   );
 }

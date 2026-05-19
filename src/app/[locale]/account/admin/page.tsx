@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isCurrentUserAdmin } from "@/lib/supabase/admin-check";
 import { AdminFilters } from "./admin-filters";
+import { AdminAnalytics } from "./admin-analytics";
 import type { AdminStoryRowData } from "./admin-story-row";
 
 export const dynamic = "force-dynamic";
@@ -21,15 +22,28 @@ export default async function AdminPage({
 
   const supabase = await createSupabaseServerClient();
 
-  const { data: stories } = await supabase
-    .from("stories")
-    .select("id, title, status, is_featured, created_at, author_id, is_anonymous")
-    .order("created_at", { ascending: false })
-    .limit(200);
+  const [
+    usersRes,
+    storiesCountRes,
+    reactionsRes,
+    commentsRes,
+    storiesRes,
+  ] = await Promise.all([
+    supabase.from("profiles").select("id", { count: "exact", head: true }),
+    supabase.from("stories").select("id", { count: "exact", head: true }),
+    supabase.from("reactions").select("id", { count: "exact", head: true }),
+    supabase.from("comments").select("id", { count: "exact", head: true }),
+    supabase
+      .from("stories")
+      .select(
+        "id, title, status, is_featured, created_at, author_id, is_anonymous",
+      )
+      .order("created_at", { ascending: false })
+      .limit(200),
+  ]);
 
-  const authorIds = Array.from(
-    new Set((stories ?? []).map((s) => s.author_id)),
-  );
+  const stories = storiesRes.data ?? [];
+  const authorIds = Array.from(new Set(stories.map((s) => s.author_id)));
 
   const usernameById = new Map<string, string>();
   if (authorIds.length > 0) {
@@ -40,7 +54,7 @@ export default async function AdminPage({
     for (const p of profs ?? []) usernameById.set(p.id, p.username);
   }
 
-  const rows: AdminStoryRowData[] = (stories ?? []).map((s) => ({
+  const rows: AdminStoryRowData[] = stories.map((s) => ({
     id: s.id,
     title: s.title,
     status: s.status,
@@ -52,14 +66,20 @@ export default async function AdminPage({
   }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      <AdminAnalytics
+        users={usersRes.count ?? 0}
+        stories={storiesCountRes.count ?? 0}
+        reactions={reactionsRes.count ?? 0}
+        comments={commentsRes.count ?? 0}
+      />
       <div>
         <h2 className="text-lg font-semibold mb-1">{t("title")}</h2>
-        <p className="text-sm text-[var(--color-foreground-muted)]">
+        <p className="text-sm text-[var(--color-foreground-muted)] mb-4">
           {t("subtitle")}
         </p>
+        <AdminFilters stories={rows} />
       </div>
-      <AdminFilters stories={rows} />
     </div>
   );
 }

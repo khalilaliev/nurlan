@@ -81,7 +81,7 @@ export function AdminStoryRow({ story }: { story: AdminStoryRowData }) {
             </span>
             <span className="text-[var(--color-foreground-subtle)]">·</span>
             <Link
-              href={`/u/${story.author_username}`}
+              href={`/user/${story.author_username}`}
               className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
             >
               @{story.author_username}

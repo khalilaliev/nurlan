@@ -3,6 +3,7 @@ import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { Nav } from "@/components/nav";
+import { Footer } from "@/components/footer";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -23,9 +24,7 @@ export default async function LocaleLayout({
     <NextIntlClientProvider>
       <Nav />
       <main className="flex-1 w-full">{children}</main>
-      <footer className="border-t border-[var(--color-border)] py-8 text-center text-xs text-[var(--color-foreground-subtle)]">
-        Nurlan © {new Date().getFullYear()}
-      </footer>
+      <Footer />
     </NextIntlClientProvider>
   );
 }

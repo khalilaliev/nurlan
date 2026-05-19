@@ -12,7 +12,20 @@
     "logout": "Log out",
     "profile": "Profile",
     "language": "Language",
-    "account": "Account"
+    "account": "Account",
+    "menu": "Menu",
+    "menuSettings": "Account settings",
+    "menuAdmin": "Moderation",
+    "menuTheme": "Theme",
+    "menuThemeDark": "Dark",
+    "menuThemeLight": "Light",
+    "menuLanguage": "Language",
+    "menuLogout": "Log out",
+    "search": "Search stories",
+    "searchPlaceholder": "Search stories...",
+    "searchEmpty": "No matches.",
+    "searchHint": "Type at least 2 characters",
+    "searchBy": "by"
   },
   "feed": {
     "title": "Latest stories",
@@ -21,7 +34,17 @@
     "filterAll": "All",
     "trending": "Trending now",
     "newest": "Newest",
-    "rising": "Rising"
+    "rising": "Rising",
+    "filters": {
+      "new": "New",
+      "newHint": "Freshly posted",
+      "best": "Best",
+      "bestHint": "Most reactions ever",
+      "top": "Top",
+      "topHint": "Most viewed ever",
+      "trending": "Trending",
+      "trendingHint": "Hot this week"
+    }
   },
   "story": {
     "anonymous": "Anonymous",
@@ -78,7 +101,7 @@
   },
   "rules": {
     "title": "Before you publish",
-    "subtitle": "A few quick rules to keep Nurlan a place people want to read.",
+    "subtitle": "A few simple rules for respectful and enjoyable communication on the site.",
     "rule1": "No hate speech, slurs, or attacks on individuals or groups.",
     "rule2": "No sexual content involving minors, ever. This is a hard ban.",
     "rule3": "No personal information (doxxing), threats, or harassment.",
@@ -92,6 +115,12 @@
   "admin": {
     "title": "Moderation",
     "subtitle": "Every story across the platform. Filter, remove, restore, or feature.",
+    "analyticsTitle": "Analytics",
+    "analyticsSubtitle": "Live platform stats.",
+    "metricUsers": "Users",
+    "metricStories": "Stories",
+    "metricReactions": "Reactions",
+    "metricComments": "Comments",
     "filterAll": "All",
     "filterPublished": "Published",
     "filterRemoved": "Removed",
@@ -132,6 +161,155 @@
     "cringe": "Cringe Stories",
     "horror": "Horror Stories",
     "weird": "Conspiracy / Weird"
+  },
+  "footer": {
+    "tagline": "Stories that hit. Real people. Real moments.",
+    "product": "Product",
+    "company": "Company",
+    "legal": "Legal",
+    "feed": "Feed",
+    "submit": "Submit a story",
+    "about": "About",
+    "news": "News",
+    "privacy": "Privacy Policy",
+    "rules": "Community Rules",
+    "rights": "All rights reserved."
+  },
+  "about": {
+    "kicker": "About",
+    "title": "We're building the place real stories live.",
+    "lede": "Nurlan is a home for the kind of stories you'd usually only hear at 2am with a friend. Honest, weird, painful, hilarious — the ones that get cut from polished feeds.",
+    "section1Title": "Why we exist",
+    "section1Body": "Social media flattened storytelling into bite-sized hits. We wanted something with texture again — long enough to feel something, short enough to finish on the bus.",
+    "section2Title": "What it is",
+    "section2Body": "A typing room, a comment thread, and a feed that rewards stories people actually finish. No algorithm gaming. No ad chasing. Just stories that hit.",
+    "section3Title": "Who's here",
+    "section3Body": "Writers, lurkers, oversharers, people processing yesterday. Anyone with something to say and the patience to say it well.",
+    "valuesTitle": "What we care about",
+    "value1Title": "Honesty over polish",
+    "value1Body": "We'd rather read a rough story that's true than a clean one that isn't.",
+    "value2Title": "Quiet over loud",
+    "value2Body": "No notification spam. No engagement bait. The feed earns your time.",
+    "value3Title": "Anonymous is fine",
+    "value3Body": "Real stories sometimes need a stage name. Post anonymously whenever you want.",
+    "ctaTitle": "Tell yours.",
+    "ctaBody": "Whatever it is, somebody here will recognize it.",
+    "ctaButton": "Start writing"
+  },
+  "news": {
+    "kicker": "Changelog",
+    "title": "What's new on Nurlan",
+    "lede": "Recent releases, design updates, and what we're working on next.",
+    "items": [
+      {
+        "date": "Soon",
+        "tag": "Coming",
+        "title": "Media attachments",
+        "body": "Upload images and videos straight into your stories. Drag-and-drop, multiple files, full preview before posting."
+      },
+      {
+        "date": "This week",
+        "tag": "Release",
+        "title": "Public profiles",
+        "body": "Visit any author at /user/their-handle to see everything they've published, their stats, and their writing voice in one place."
+      },
+      {
+        "date": "This week",
+        "tag": "Release",
+        "title": "Feed filters",
+        "body": "Sort the feed by New, Best, Top, or Trending — see what's hot this week instead of just the latest."
+      },
+      {
+        "date": "Last week",
+        "tag": "Polish",
+        "title": "Light mode",
+        "body": "Toggle in the header. Same accent, totally different mood. Persists across sessions."
+      },
+      {
+        "date": "Last week",
+        "tag": "Release",
+        "title": "Account dashboard",
+        "body": "Manage your stories, reactions received, comments, and account settings — all in one place."
+      },
+      {
+        "date": "Two weeks ago",
+        "tag": "Release",
+        "title": "Bilingual launch",
+        "body": "Full English and Russian support across the site. Switch instantly from the header."
+      }
+    ]
+  },
+  "privacy": {
+    "kicker": "Privacy",
+    "title": "Privacy Policy",
+    "updated": "Last updated",
+    "intro": "Plain-English version: we collect the bare minimum to run the site, we don't sell your data, and we explain everything below.",
+    "sections": [
+      {
+        "title": "What we collect",
+        "body": "When you sign up, we store your email and any profile information you choose to add (username, display name, bio, avatar URL). When you post or comment, we store that content. We log basic technical data (timestamps, IP for rate-limiting) like every web service does."
+      },
+      {
+        "title": "What we don't do",
+        "body": "We don't sell your data. We don't share it with advertisers. We don't run third-party tracking pixels. Analytics, if any, are first-party and aggregate."
+      },
+      {
+        "title": "Anonymous posting",
+        "body": "You can publish stories anonymously. Your username is hidden from the public, but we keep the link internally so we can moderate abuse. Law enforcement requests are evaluated on a case-by-case basis with a strong bias toward your privacy."
+      },
+      {
+        "title": "Authentication providers",
+        "body": "If you sign in with Twitch or Google, those services share your email and basic profile info with us per their normal OAuth flow. We don't get your password or access anything else."
+      },
+      {
+        "title": "Your control",
+        "body": "You can edit your profile, change your email, change your password, delete individual stories or comments, or delete your entire account from /account/settings. Account deletion is immediate and cascades to all your content."
+      },
+      {
+        "title": "Cookies",
+        "body": "We use a single auth cookie to keep you logged in. That's it. No tracking cookies."
+      },
+      {
+        "title": "Contact",
+        "body": "Questions about your data? Email khalilaliev0@gmail.com."
+      }
+    ]
+  },
+  "rulesPage": {
+    "kicker": "Community",
+    "title": "Community Rules",
+    "intro": "Five rules. Read them once. They're the same ones you saw before publishing your first story.",
+    "sections": [
+      {
+        "n": 1,
+        "title": "No hate speech",
+        "body": "No slurs. No targeting individuals or groups for who they are. Disagreement is fine; dehumanizing language isn't."
+      },
+      {
+        "n": 2,
+        "title": "Nothing involving minors sexually",
+        "body": "Zero tolerance. Instant ban. Reported to authorities where applicable."
+      },
+      {
+        "n": 3,
+        "title": "No doxxing, threats, or harassment",
+        "body": "Don't post other people's personal information. Don't threaten anyone. Don't pile on. Telling your story is fine; weaponizing it isn't."
+      },
+      {
+        "n": 4,
+        "title": "No spam or scams",
+        "body": "No commercial promotion, no affiliate dumps, no Nigerian-prince posts. If you want to advertise, this isn't the place."
+      },
+      {
+        "n": 5,
+        "title": "No shock for shock's sake",
+        "body": "Graphic detail is fine if the story earns it. Gore or trauma porn purely to disturb people is not."
+      }
+    ],
+    "enforcementTitle": "How enforcement works",
+    "enforcementBody": "Admins can remove any story or comment that breaks these rules. First offense is usually a removal with a note. Repeat offenders lose their account. Hate speech and CSAM are instant bans.",
+    "appealTitle": "If you think we got it wrong",
+    "appealBody": "Email khalilaliev0@gmail.com and we'll look at it. Mistakes happen — we'd rather fix one than let it stand."
   },
   "notFound": {
     "kicker": "404",

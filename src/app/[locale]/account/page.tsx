@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
+import { FadeIn, Stagger, CountUp } from "@/components/animated";
 import { formatRelativeTime } from "@/lib/utils";
 import { FileText, Heart, MessageCircle, Eye, ArrowRight } from "lucide-react";
 
@@ -72,6 +73,7 @@ export default async function AccountOverviewPage({
 
   return (
     <div className="space-y-8">
+      <FadeIn>
       <Card className="relative overflow-hidden p-6 sm:p-8">
         <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-[var(--color-accent-soft)] blur-3xl pointer-events-none" />
         <div className="relative flex flex-col sm:flex-row gap-5 sm:items-center">
@@ -112,36 +114,43 @@ export default async function AccountOverviewPage({
           </div>
           {profile?.username && (
             <Button asChild variant="outline" size="sm" className="self-start">
-              <Link href={`/u/${profile.username}`}>
+              <Link href={`/user/${profile.username}`}>
                 {t("publicProfile.stories")} →
               </Link>
             </Button>
           )}
         </div>
       </Card>
+      </FadeIn>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <Stagger
+        as="div"
+        className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
+      >
         {stats.map((s) => (
           <Card
             key={s.key}
-            className="relative overflow-hidden p-5 hover:border-[var(--color-border-strong)] transition-colors"
+            className="relative overflow-hidden p-5 hover:border-[var(--color-border-strong)] hover:-translate-y-0.5 transition-all duration-200"
           >
             <div
               className={`absolute inset-0 bg-gradient-to-br ${s.accent} opacity-60 pointer-events-none`}
             />
             <div className="relative">
               <s.Icon className="h-4 w-4 text-[var(--color-foreground-muted)] mb-3" />
-              <div className="text-3xl font-semibold tracking-tight tabular-nums">
-                {s.value.toLocaleString(locale)}
-              </div>
+              <CountUp
+                to={s.value}
+                duration={1.2}
+                className="block text-3xl font-semibold tracking-tight tabular-nums"
+              />
               <div className="mt-1 text-xs uppercase tracking-wider text-[var(--color-foreground-subtle)]">
                 {t(`stats.${s.key}`)}
               </div>
             </div>
           </Card>
         ))}
-      </div>
+      </Stagger>
 
+      <FadeIn delay={0.15}>
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-semibold">{t("stories.title")}</h3>
@@ -197,6 +206,7 @@ export default async function AccountOverviewPage({
           </div>
         )}
       </Card>
+      </FadeIn>
     </div>
   );
 }

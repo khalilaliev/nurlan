@@ -5,19 +5,50 @@ import { StoryCard } from "@/components/story-card";
 import { SetupNotice } from "@/components/setup-notice";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
+import { FeedFilters, type FeedSort } from "@/components/feed-filters";
+import { Stagger, FadeIn } from "@/components/animated";
 import type { StoryFeedRow } from "@/lib/supabase/types";
 
 export const dynamic = "force-dynamic";
 
-async function fetchFeed(): Promise<StoryFeedRow[]> {
+function parseSort(value: string | undefined): FeedSort {
+  if (value === "best" || value === "top" || value === "trending") return value;
+  return "new";
+}
+
+async function fetchFeed(sort: FeedSort): Promise<StoryFeedRow[]> {
   if (!isSupabaseConfigured()) return [];
   try {
     const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase
-      .from("story_feed")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(30);
+    let query = supabase.from("story_feed").select("*").limit(30);
+
+    switch (sort) {
+      case "new":
+        query = query.order("created_at", { ascending: false });
+        break;
+      case "best":
+        query = query
+          .order("reaction_total", { ascending: false })
+          .order("created_at", { ascending: false });
+        break;
+      case "top":
+        query = query
+          .order("view_count", { ascending: false })
+          .order("created_at", { ascending: false });
+        break;
+      case "trending": {
+        const weekAgo = new Date(
+          Date.now() - 7 * 24 * 60 * 60 * 1000,
+        ).toISOString();
+        query = query
+          .gte("created_at", weekAgo)
+          .order("reaction_total", { ascending: false })
+          .order("created_at", { ascending: false });
+        break;
+      }
+    }
+
+    const { data, error } = await query;
     if (error) {
       console.error("[feed] supabase error:", error.message);
       return [];
@@ -31,31 +62,41 @@ async function fetchFeed(): Promise<StoryFeedRow[]> {
 
 export default async function FeedPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ sort?: string }>;
 }) {
   const { locale } = await params;
+  const { sort: sortParam } = await searchParams;
+  const sort = parseSort(sortParam);
   setRequestLocale(locale);
   const t = await getTranslations();
-  const stories = await fetchFeed();
+  const stories = await fetchFeed(sort);
 
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6 py-10">
-      <section className="mb-10">
-        <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight gradient-text mb-3">
-          {t("brand.tagline")}
-        </h1>
-        <p className="text-base text-[var(--color-foreground-muted)] max-w-xl">
-          {t("feed.title")}.
-        </p>
-        <div className="mt-5">
-          <Button asChild variant="accent" size="lg">
-            <Link href="/submit">✨ {t("nav.submit")}</Link>
-          </Button>
-        </div>
-      </section>
+      <FadeIn>
+        <section className="mb-10">
+          <h1 className="text-5xl sm:text-6xl font-semibold tracking-tight gradient-text mb-4 leading-[1.05]">
+            {t("brand.tagline")}
+          </h1>
+          <p className="text-base text-[var(--color-foreground-muted)] max-w-xl">
+            {t("feed.title")}.
+          </p>
+          <div className="mt-5">
+            <Button asChild variant="accent" size="lg">
+              <Link href="/submit">✨ {t("nav.submit")}</Link>
+            </Button>
+          </div>
+        </section>
+      </FadeIn>
 
       {!isSupabaseConfigured() && <SetupNotice />}
+
+      <div className="mb-6">
+        <FeedFilters active={sort} />
+      </div>
 
       {isSupabaseConfigured() && stories.length === 0 && (
         <p className="text-sm text-[var(--color-foreground-muted)] py-8">
@@ -63,13 +104,13 @@ export default async function FeedPage({
         </p>
       )}
 
-      <ul className="space-y-4 mt-6">
+      <Stagger as="ul" className="space-y-4">
         {stories.map((story) => (
-          <li key={story.id}>
+          <li key={`${sort}-${story.id}`}>
             <StoryCard story={story} />
           </li>
         ))}
-      </ul>
+      </Stagger>
     </div>
   );
 }
