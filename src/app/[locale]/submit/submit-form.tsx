@@ -1,41 +1,68 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { RulesModal } from "@/components/rules-modal";
 import { createStory } from "@/app/actions/stories";
 
 export function SubmitForm({
   categories,
+  rulesAccepted,
 }: {
   categories: { slug: string; name: string; emoji: string }[];
+  rulesAccepted: boolean;
 }) {
   const t = useTranslations("submit");
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [accepted, setAccepted] = useState(rulesAccepted);
+  const [showRules, setShowRules] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const submit = async (fd: FormData) => {
+    setSubmitting(true);
+    setError(null);
+    const res = await createStory(fd);
+    setSubmitting(false);
+    if (res && "error" in res && res.error) {
+      const key = res.error as "errorAuth" | "errorGeneric";
+      setError(t(key));
+      return;
+    }
+    if (res && "id" in res && typeof res.id === "string") {
+      router.push(`/story/${res.id}`);
+    }
+  };
 
   return (
     <form
+      ref={formRef}
       action={async (fd) => {
-        setSubmitting(true);
-        setError(null);
-        const res = await createStory(fd);
-        setSubmitting(false);
-        if (res && "error" in res && res.error) {
-          const key = res.error as "errorAuth" | "errorGeneric";
-          setError(t(key));
+        if (!accepted) {
+          setShowRules(true);
           return;
         }
-        if (res && "id" in res && typeof res.id === "string") {
-          router.push(`/story/${res.id}`);
-        }
+        await submit(fd);
       }}
       className="space-y-5"
     >
+      <RulesModal
+        open={showRules}
+        onCancel={() => setShowRules(false)}
+        onAccepted={() => {
+          setAccepted(true);
+          setShowRules(false);
+          if (formRef.current) {
+            const fd = new FormData(formRef.current);
+            void submit(fd);
+          }
+        }}
+      />
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-[var(--color-foreground-muted)] uppercase tracking-wider">
           {t("fieldTitle")}

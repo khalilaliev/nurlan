@@ -28,10 +28,20 @@ export default async function SubmitPage({
   } = await supabase.auth.getUser();
   if (!user) redirect(`/${locale}/login`);
 
-  const { data: categories } = await supabase
-    .from("categories")
-    .select("slug, name_en, name_ru, emoji")
-    .order("display_order");
+  const [categoriesRes, profileRes] = await Promise.all([
+    supabase
+      .from("categories")
+      .select("slug, name_en, name_ru, emoji")
+      .order("display_order"),
+    supabase
+      .from("profiles")
+      .select("rules_accepted_at")
+      .eq("id", user.id)
+      .maybeSingle(),
+  ]);
+
+  const categories = categoriesRes.data;
+  const rulesAccepted = Boolean(profileRes.data?.rules_accepted_at);
 
   return (
     <div className="mx-auto max-w-2xl px-4 sm:px-6 py-10">
@@ -44,6 +54,7 @@ export default async function SubmitPage({
         </p>
       </header>
       <SubmitForm
+        rulesAccepted={rulesAccepted}
         categories={(categories ?? []).map((c) => ({
           slug: c.slug,
           name: locale === "ru" ? c.name_ru : c.name_en,

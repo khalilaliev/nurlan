@@ -26,6 +26,8 @@ type ProfileRow = {
   avatar_url: string | null;
   bio: string | null;
   reputation: number;
+  is_admin: boolean;
+  rules_accepted_at: string | null;
   created_at: string;
   updated_at: string;
 };

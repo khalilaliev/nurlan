@@ -2,11 +2,13 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/guard";
+import { isCurrentUserAdmin } from "@/lib/supabase/admin-check";
 import { SetupNotice } from "@/components/setup-notice";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ReactionBar } from "@/components/reaction-bar";
 import { Comments } from "@/components/comments";
+import { AdminStoryActions } from "@/components/admin-story-actions";
 import { estimateReadingMinutes, formatRelativeTime } from "@/lib/utils";
 import type {
   ReactionType,
@@ -62,14 +64,65 @@ export default async function StoryPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const isAdmin = await isCurrentUserAdmin();
 
-  const { data: story } = await supabase
+  let story: StoryFeedRow | null = null;
+  let storyStatus: "published" | "flagged" | "removed" | "draft" = "published";
+  let isFeatured = false;
+
+  const feedRes = await supabase
     .from("story_feed")
     .select("*")
     .eq("id", id)
     .maybeSingle();
+
+  if (feedRes.data) {
+    story = feedRes.data as StoryFeedRow;
+    storyStatus = story.status;
+    isFeatured = story.is_featured;
+  } else if (isAdmin || user) {
+    const raw = await supabase
+      .from("stories")
+      .select(
+        "id, title, body, category_slug, tags, is_anonymous, status, media_urls, ai_score, view_count, is_featured, language, created_at, author_id",
+      )
+      .eq("id", id)
+      .maybeSingle();
+    if (raw.data && (isAdmin || raw.data.author_id === user?.id)) {
+      const [catRes, authorRes] = await Promise.all([
+        supabase
+          .from("categories")
+          .select("name_en, name_ru, emoji")
+          .eq("slug", raw.data.category_slug)
+          .maybeSingle(),
+        supabase
+          .from("profiles")
+          .select("username, avatar_url")
+          .eq("id", raw.data.author_id)
+          .maybeSingle(),
+      ]);
+      story = {
+        ...raw.data,
+        category_name_en: catRes.data?.name_en ?? "",
+        category_name_ru: catRes.data?.name_ru ?? "",
+        category_emoji: catRes.data?.emoji ?? null,
+        author_username: raw.data.is_anonymous
+          ? "Anonymous"
+          : authorRes.data?.username ?? "user",
+        author_avatar: raw.data.is_anonymous
+          ? null
+          : authorRes.data?.avatar_url ?? null,
+        reaction_total: 0,
+        comment_count: 0,
+        reaction_breakdown: {},
+      } as StoryFeedRow;
+      storyStatus = raw.data.status;
+      isFeatured = raw.data.is_featured;
+    }
+  }
+
   if (!story) notFound();
-  const s = story as StoryFeedRow;
+  const s = story;
 
   const { data: commentRows } = await supabase
     .from("comments")
@@ -121,6 +174,11 @@ export default async function StoryPage({
   return (
     <article className="mx-auto max-w-6xl px-4 sm:px-6 py-10 grid gap-8 lg:grid-cols-[1fr_320px]">
       <div className="min-w-0">
+        {storyStatus === "removed" && (
+          <div className="mb-5 rounded-[var(--radius-lg)] border border-[var(--color-accent)]/30 bg-[var(--color-accent-soft)]/40 p-4 text-sm text-[var(--color-accent)]">
+            ⚠ {t("admin.removedNotice")}
+          </div>
+        )}
         <div className="flex flex-wrap items-center gap-2 mb-4 text-xs">
           <Badge>
             <span>{s.category_emoji}</span>
@@ -166,11 +224,19 @@ export default async function StoryPage({
             comments={commentTree}
             isAuthed={Boolean(user)}
             currentUserId={user?.id ?? null}
+            isAdmin={isAdmin}
           />
         </section>
       </div>
 
       <aside className="lg:sticky lg:top-20 lg:self-start space-y-4">
+        {isAdmin && (
+          <AdminStoryActions
+            storyId={s.id}
+            initialStatus={storyStatus}
+            initialFeatured={isFeatured}
+          />
+        )}
         <Card className="p-5">
           <h3 className="text-sm font-semibold mb-3">
             {t("story.reactionsTitle")}

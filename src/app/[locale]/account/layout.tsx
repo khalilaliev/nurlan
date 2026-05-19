@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/guard";
+import { isCurrentUserAdmin } from "@/lib/supabase/admin-check";
 import { SetupNotice } from "@/components/setup-notice";
 import { AccountTabs } from "@/components/account-tabs";
 
@@ -30,6 +31,8 @@ export default async function AccountLayout({
   } = await supabase.auth.getUser();
   if (!user) redirect(`/${locale}/login`);
 
+  const isAdmin = await isCurrentUserAdmin();
+
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6 py-10">
       <header className="mb-8">
@@ -42,7 +45,7 @@ export default async function AccountLayout({
       </header>
 
       <div className="mb-8">
-        <AccountTabs />
+        <AccountTabs isAdmin={isAdmin} />
       </div>
 
       {children}

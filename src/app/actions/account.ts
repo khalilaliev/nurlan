@@ -124,6 +124,22 @@ export async function deleteStory(storyId: string) {
   return { ok: true as const };
 }
 
+export async function acceptRules() {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "errorGeneric" as const };
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ rules_accepted_at: new Date().toISOString() })
+    .eq("id", user.id);
+  if (error) return { error: "errorGeneric" as const };
+
+  return { ok: true as const };
+}
+
 export async function deleteAccount(formData: FormData) {
   const supabase = await createSupabaseServerClient();
   const {

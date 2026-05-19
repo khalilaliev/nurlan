@@ -48,18 +48,24 @@ export async function deleteComment(commentId: string) {
   } = await supabase.auth.getUser();
   if (!user) return { error: "auth" as const };
 
-  const { data: row } = await supabase
-    .from("comments")
-    .select("story_id, author_id")
-    .eq("id", commentId)
-    .maybeSingle();
-  if (!row || row.author_id !== user.id) return { error: "auth" as const };
+  const [rowRes, profileRes] = await Promise.all([
+    supabase
+      .from("comments")
+      .select("story_id, author_id")
+      .eq("id", commentId)
+      .maybeSingle(),
+    supabase
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", user.id)
+      .maybeSingle(),
+  ]);
+  const row = rowRes.data;
+  const isAdmin = Boolean(profileRes.data?.is_admin);
+  if (!row) return { error: "auth" as const };
+  if (!isAdmin && row.author_id !== user.id) return { error: "auth" as const };
 
-  const { error } = await supabase
-    .from("comments")
-    .delete()
-    .eq("id", commentId)
-    .eq("author_id", user.id);
+  const { error } = await supabase.from("comments").delete().eq("id", commentId);
   if (error) return { error: "db" as const };
 
   revalidatePath(`/en/story/${row.story_id}`);

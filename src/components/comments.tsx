@@ -25,11 +25,13 @@ export function Comments({
   comments,
   isAuthed,
   currentUserId,
+  isAdmin = false,
 }: {
   storyId: string;
   comments: CommentNode[];
   isAuthed: boolean;
   currentUserId?: string | null;
+  isAdmin?: boolean;
 }) {
   const t = useTranslations("comments");
 
@@ -56,6 +58,7 @@ export function Comments({
               storyId={storyId}
               isAuthed={isAuthed}
               currentUserId={currentUserId}
+              isAdmin={isAdmin}
               depth={0}
             />
           ))}
@@ -122,12 +125,14 @@ function CommentItem({
   storyId,
   isAuthed,
   currentUserId,
+  isAdmin,
   depth,
 }: {
   comment: CommentNode;
   storyId: string;
   isAuthed: boolean;
   currentUserId?: string | null;
+  isAdmin?: boolean;
   depth: number;
 }) {
   const t = useTranslations("comments");
@@ -137,8 +142,8 @@ function CommentItem({
   const [deleted, setDeleted] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  const canDelete =
-    !!currentUserId && comment.author_id === currentUserId && !deleted;
+  const isOwn = !!currentUserId && comment.author_id === currentUserId;
+  const canDelete = (isOwn || !!isAdmin) && !deleted;
 
   if (deleted) return null;
 
@@ -213,6 +218,7 @@ function CommentItem({
               storyId={storyId}
               isAuthed={isAuthed}
               currentUserId={currentUserId}
+              isAdmin={isAdmin}
               depth={depth + 1}
             />
           ))}
