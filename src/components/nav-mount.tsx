@@ -18,5 +18,9 @@ export function NavMount({ children }: { children: React.ReactNode }) {
     return () => ctx.revert();
   }, []);
 
-  return <div ref={ref}>{children}</div>;
+  return (
+    <div ref={ref} className="sticky top-0 z-40">
+      {children}
+    </div>
+  );
 }

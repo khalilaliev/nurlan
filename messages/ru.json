@@ -79,7 +79,19 @@
     "submitting": "Публикуем...",
     "success": "Готово. История опубликована.",
     "errorAuth": "Нужен аккаунт. Войди сначала.",
-    "errorGeneric": "Что-то пошло не так. Попробуй ещё раз."
+    "errorGeneric": "Что-то пошло не так. Попробуй ещё раз.",
+    "media": "Медиа",
+    "mediaHint": "Перетащи картинки или видео сюда или нажми, чтобы выбрать. До {max} файлов.",
+    "mediaPicker": "Выбрать файлы",
+    "mediaUploading": "Загружаем...",
+    "mediaRetry": "Повторить",
+    "mediaRemove": "Удалить",
+    "mediaSizes": "Картинки до {img}, видео до {vid}.",
+    "mediaErrorType": "Этот тип файла не поддерживается.",
+    "mediaErrorImageSize": "Картинка слишком большая.",
+    "mediaErrorVideoSize": "Видео слишком большое.",
+    "mediaErrorMaxFiles": "Достигнут лимит файлов.",
+    "mediaErrorUpload": "Не удалось загрузить."
   },
   "auth": {
     "loginTitle": "С возвращением",

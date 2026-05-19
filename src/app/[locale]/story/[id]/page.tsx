@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ReactionBar } from "@/components/reaction-bar";
 import { Comments } from "@/components/comments";
+import { MediaGallery } from "@/components/media-gallery";
 import { AdminStoryActions } from "@/components/admin-story-actions";
 import { estimateReadingMinutes, formatRelativeTime } from "@/lib/utils";
 import type {
@@ -200,6 +201,12 @@ export default async function StoryPage({
             {s.is_anonymous ? t("story.anonymous") : `@${s.author_username}`}
           </span>
         </div>
+
+        {s.media_urls && s.media_urls.length > 0 && (
+          <div className="mb-8">
+            <MediaGallery urls={s.media_urls} />
+          </div>
+        )}
 
         <div className="prose-content text-[var(--color-foreground)] leading-[1.8] text-base whitespace-pre-wrap">
           {s.body}

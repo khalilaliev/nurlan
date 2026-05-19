@@ -7,6 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { RulesModal } from "@/components/rules-modal";
+import {
+  MediaUploader,
+  urlsToMedia,
+  type UploadedMedia,
+} from "@/components/media-uploader";
 import { createStory } from "@/app/actions/stories";
 
 const STORAGE_KEY = "nurlan:submit-draft";
@@ -17,14 +22,17 @@ type Draft = {
   category_slug?: string;
   tags?: string;
   is_anonymous?: boolean;
+  media_urls?: string[];
 };
 
 export function SubmitForm({
   categories,
   rulesAccepted,
+  userId,
 }: {
   categories: { slug: string; name: string; emoji: string }[];
   rulesAccepted: boolean;
+  userId: string;
 }) {
   const t = useTranslations("submit");
   const router = useRouter();
@@ -38,6 +46,8 @@ export function SubmitForm({
   const [category, setCategory] = useState("");
   const [tags, setTags] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [media, setMedia] = useState<UploadedMedia[]>([]);
+  const [initialMedia, setInitialMedia] = useState<UploadedMedia[] | null>(null);
   const [restored, setRestored] = useState(false);
 
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -53,9 +63,16 @@ export function SubmitForm({
         if (typeof draft.tags === "string") setTags(draft.tags);
         if (typeof draft.is_anonymous === "boolean")
           setIsAnonymous(draft.is_anonymous);
+        if (Array.isArray(draft.media_urls)) {
+          setInitialMedia(urlsToMedia(draft.media_urls));
+        } else {
+          setInitialMedia([]);
+        }
+      } else {
+        setInitialMedia([]);
       }
     } catch {
-      // ignore corrupted draft
+      setInitialMedia([]);
     }
     setRestored(true);
   }, []);
@@ -65,7 +82,12 @@ export function SubmitForm({
     if (!restored) return;
     try {
       const empty =
-        !title && !body && !category && !tags && !isAnonymous;
+        !title &&
+        !body &&
+        !category &&
+        !tags &&
+        !isAnonymous &&
+        media.length === 0;
       if (empty) {
         localStorage.removeItem(STORAGE_KEY);
         return;
@@ -76,12 +98,13 @@ export function SubmitForm({
         category_slug: category,
         tags,
         is_anonymous: isAnonymous,
+        media_urls: media.map((m) => m.url),
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
     } catch {
       // localStorage quota or disabled
     }
-  }, [restored, title, body, category, tags, isAnonymous]);
+  }, [restored, title, body, category, tags, isAnonymous, media]);
 
   const clearDraft = () => {
     try {
@@ -98,6 +121,7 @@ export function SubmitForm({
     fd.set("category_slug", category);
     fd.set("tags", tags);
     if (isAnonymous) fd.set("is_anonymous", "on");
+    media.forEach((m) => fd.append("media_urls", m.url));
     return fd;
   };
 
@@ -123,6 +147,8 @@ export function SubmitForm({
     setCategory("");
     setTags("");
     setIsAnonymous(false);
+    setMedia([]);
+    setInitialMedia([]);
     clearDraft();
   };
 
@@ -203,6 +229,19 @@ export function SubmitForm({
 
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-[var(--color-foreground-muted)] uppercase tracking-wider">
+          {t("media")}
+        </label>
+        {initialMedia !== null && (
+          <MediaUploader
+            userId={userId}
+            initial={initialMedia}
+            onChange={setMedia}
+          />
+        )}
+      </div>
+
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-[var(--color-foreground-muted)] uppercase tracking-wider">
           {t("fieldTags")}
         </label>
         <Input
@@ -237,7 +276,12 @@ export function SubmitForm({
         >
           {submitting ? t("submitting") : t("submit")}
         </Button>
-        {(title || body || category || tags || isAnonymous) && (
+        {(title ||
+          body ||
+          category ||
+          tags ||
+          isAnonymous ||
+          media.length > 0) && (
           <Button
             type="button"
             variant="ghost"

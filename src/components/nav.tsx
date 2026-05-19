@@ -38,7 +38,7 @@ export async function Nav() {
 
   return (
     <NavMount>
-      <header className="sticky top-0 z-40 glass border-b border-[var(--color-border)]">
+      <header className="glass border-b border-[var(--color-border)]">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 sm:gap-6 px-4 sm:px-6">
           <Link
             href="/"

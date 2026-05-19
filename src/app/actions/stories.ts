@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+const MAX_MEDIA = 5;
+
 const StorySchema = z.object({
   title: z.string().min(3).max(200),
   body: z.string().min(20).max(50000),
@@ -20,6 +22,7 @@ const StorySchema = z.object({
   is_anonymous: z.boolean(),
   tags: z.array(z.string()).max(8),
   language: z.enum(["en", "ru"]),
+  media_urls: z.array(z.string().url()).max(MAX_MEDIA),
 });
 
 function getLocaleFromHeaders(h: Headers): "en" | "ru" {
@@ -36,6 +39,19 @@ export async function createStory(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) return { error: "errorAuth" as const };
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  const allowedMediaPrefix = supabaseUrl
+    ? `${supabaseUrl.replace(/\/$/, "")}/storage/v1/object/public/story-media/`
+    : null;
+
+  const rawMedia = formData
+    .getAll("media_urls")
+    .map((v) => String(v).trim())
+    .filter((v) => v.length > 0);
+  const mediaUrls = allowedMediaPrefix
+    ? rawMedia.filter((u) => u.startsWith(allowedMediaPrefix)).slice(0, MAX_MEDIA)
+    : [];
+
   const parsed = StorySchema.safeParse({
     title: String(formData.get("title") ?? "").trim(),
     body: String(formData.get("body") ?? "").trim(),
@@ -47,6 +63,7 @@ export async function createStory(formData: FormData) {
       .filter(Boolean)
       .slice(0, 8),
     language: locale,
+    media_urls: mediaUrls,
   });
   if (!parsed.success) return { error: "errorGeneric" as const };
 
@@ -60,6 +77,7 @@ export async function createStory(formData: FormData) {
       is_anonymous: parsed.data.is_anonymous,
       tags: parsed.data.tags,
       language: parsed.data.language,
+      media_urls: parsed.data.media_urls,
     })
     .select("id")
     .single();

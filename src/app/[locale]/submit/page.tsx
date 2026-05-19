@@ -55,6 +55,7 @@ export default async function SubmitPage({
       </header>
       <SubmitForm
         rulesAccepted={rulesAccepted}
+        userId={user.id}
         categories={(categories ?? []).map((c) => ({
           slug: c.slug,
           name: locale === "ru" ? c.name_ru : c.name_en,

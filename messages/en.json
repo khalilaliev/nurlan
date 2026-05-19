@@ -79,7 +79,19 @@
     "submitting": "Publishing...",
     "success": "Published. Your story is live.",
     "errorAuth": "You need an account to publish. Log in first.",
-    "errorGeneric": "Something went wrong. Try again."
+    "errorGeneric": "Something went wrong. Try again.",
+    "media": "Media",
+    "mediaHint": "Drop images or videos here, or click to choose. Up to {max} files.",
+    "mediaPicker": "Choose files",
+    "mediaUploading": "Uploading...",
+    "mediaRetry": "Retry",
+    "mediaRemove": "Remove",
+    "mediaSizes": "Images up to {img}, videos up to {vid}.",
+    "mediaErrorType": "That file type isn't supported.",
+    "mediaErrorImageSize": "Image is too large.",
+    "mediaErrorVideoSize": "Video is too large.",
+    "mediaErrorMaxFiles": "You've reached the file limit.",
+    "mediaErrorUpload": "Upload failed."
   },
   "auth": {
     "loginTitle": "Welcome back",
