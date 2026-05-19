@@ -16,6 +16,7 @@ import type {
 type CommentNode = {
   id: string;
   body: string;
+  author_id: string | null;
   author_username: string;
   is_anonymous: boolean;
   created_at: string;
@@ -96,6 +97,7 @@ export default async function StoryPage({
       is_anonymous: c.is_anonymous,
       created_at: c.created_at,
       upvote_count: c.upvote_count ?? 0,
+      author_id: c.author_id,
       author_username: c.is_anonymous
         ? "anonymous"
         : usernameById.get(c.author_id) ?? "user",
@@ -163,6 +165,7 @@ export default async function StoryPage({
             storyId={s.id}
             comments={commentTree}
             isAuthed={Boolean(user)}
+            currentUserId={user?.id ?? null}
           />
         </section>
       </div>

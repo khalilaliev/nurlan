@@ -11,7 +11,8 @@
     "signup": "Sign up",
     "logout": "Log out",
     "profile": "Profile",
-    "language": "Language"
+    "language": "Language",
+    "account": "Account"
   },
   "feed": {
     "title": "Latest stories",
@@ -77,6 +78,8 @@
     "placeholder": "Add a comment...",
     "submit": "Post",
     "reply": "Reply",
+    "delete": "Delete",
+    "deleteConfirm": "Delete?",
     "sortTop": "Top",
     "sortNewest": "Newest",
     "sortControversial": "Controversial"
@@ -89,5 +92,85 @@
     "cringe": "Cringe Stories",
     "horror": "Horror Stories",
     "weird": "Conspiracy / Weird"
+  },
+  "account": {
+    "title": "Your account",
+    "subtitle": "Manage your profile, stories, and activity.",
+    "memberSince": "Member since",
+    "tabs": {
+      "overview": "Overview",
+      "stories": "My stories",
+      "activity": "Activity",
+      "settings": "Settings"
+    },
+    "stats": {
+      "stories": "Stories",
+      "reactionsReceived": "Reactions",
+      "commentsReceived": "Comments",
+      "totalViews": "Views"
+    },
+    "stories": {
+      "title": "My stories",
+      "empty": "You haven't published anything yet.",
+      "writeOne": "Write your first story",
+      "views": "views",
+      "reactions": "reactions",
+      "comments": "comments",
+      "delete": "Delete",
+      "deleteConfirm": "Click again to confirm",
+      "deleting": "Deleting...",
+      "view": "View"
+    },
+    "activity": {
+      "title": "Your activity",
+      "subtitle": "Your comments and reactions across Nurlan.",
+      "commentsHeading": "Your comments",
+      "reactionsHeading": "Stories you reacted to",
+      "emptyComments": "You haven't commented anywhere yet.",
+      "emptyReactions": "You haven't reacted to anything yet.",
+      "on": "on",
+      "delete": "Delete",
+      "deleteConfirm": "Click again to confirm"
+    },
+    "settings": {
+      "title": "Settings",
+      "profile": "Profile",
+      "profileSubtitle": "How you appear across Nurlan.",
+      "username": "Username",
+      "usernameHelp": "Lowercase letters, numbers, underscore. 3–24 characters.",
+      "displayName": "Display name",
+      "bio": "Bio",
+      "bioPlaceholder": "A few words about yourself",
+      "avatarUrl": "Avatar URL",
+      "saveProfile": "Save profile",
+      "profileSaved": "Saved.",
+      "email": "Email",
+      "emailSubtitle": "We'll send a confirmation link to the new address.",
+      "newEmail": "New email",
+      "saveEmail": "Update email",
+      "emailSent": "Check your inbox to confirm the change.",
+      "password": "Password",
+      "passwordSubtitle": "Pick something you don't use anywhere else.",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "savePassword": "Update password",
+      "passwordSaved": "Password updated.",
+      "passwordMismatch": "Passwords don't match.",
+      "danger": "Danger zone",
+      "dangerSubtitle": "This permanently deletes your account, stories, and comments.",
+      "deleteAccount": "Delete account",
+      "deleteAccountConfirm": "Type your username to confirm",
+      "deleteAccountButton": "Permanently delete",
+      "deleting": "Deleting...",
+      "errorGeneric": "Something went wrong.",
+      "errorUsernameTaken": "That username is already taken.",
+      "errorUsernameInvalid": "Username must be 3–24 chars, lowercase letters/numbers/underscore."
+    },
+    "publicProfile": {
+      "joinedOn": "Joined",
+      "stories": "Stories",
+      "noStories": "No public stories yet.",
+      "notFound": "User not found."
+    }
   }
 }

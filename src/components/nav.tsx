@@ -3,6 +3,7 @@ import { Link } from "@/i18n/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { LocaleSwitcher } from "@/components/locale-switcher";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { signOut } from "@/app/actions/auth";
 
 async function getCurrentUser() {
@@ -41,12 +42,18 @@ export async function Nav() {
             <Link href="/submit">{t("submit")}</Link>
           </Button>
           <LocaleSwitcher />
+          <ThemeToggle />
           {user ? (
-            <form action={signOut}>
-              <Button type="submit" variant="ghost" size="sm">
-                {t("logout")}
+            <>
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/account">{t("account")}</Link>
               </Button>
-            </form>
+              <form action={signOut}>
+                <Button type="submit" variant="ghost" size="sm">
+                  {t("logout")}
+                </Button>
+              </form>
+            </>
           ) : (
             <>
               <Button asChild variant="ghost" size="sm">

@@ -11,7 +11,8 @@
     "signup": "Регистрация",
     "logout": "Выйти",
     "profile": "Профиль",
-    "language": "Язык"
+    "language": "Язык",
+    "account": "Аккаунт"
   },
   "feed": {
     "title": "Свежие истории",
@@ -77,6 +78,8 @@
     "placeholder": "Оставь комментарий...",
     "submit": "Отправить",
     "reply": "Ответить",
+    "delete": "Удалить",
+    "deleteConfirm": "Удалить?",
     "sortTop": "Топ",
     "sortNewest": "Новые",
     "sortControversial": "Спорные"
@@ -89,5 +92,85 @@
     "cringe": "Кринж",
     "horror": "Хоррор",
     "weird": "Странное / Конспирология"
+  },
+  "account": {
+    "title": "Твой аккаунт",
+    "subtitle": "Управляй профилем, историями и активностью.",
+    "memberSince": "С нами с",
+    "tabs": {
+      "overview": "Обзор",
+      "stories": "Мои истории",
+      "activity": "Активность",
+      "settings": "Настройки"
+    },
+    "stats": {
+      "stories": "Историй",
+      "reactionsReceived": "Реакций",
+      "commentsReceived": "Комментариев",
+      "totalViews": "Просмотров"
+    },
+    "stories": {
+      "title": "Мои истории",
+      "empty": "Ты ещё ничего не опубликовал.",
+      "writeOne": "Написать первую историю",
+      "views": "просмотров",
+      "reactions": "реакций",
+      "comments": "комментариев",
+      "delete": "Удалить",
+      "deleteConfirm": "Нажми ещё раз для подтверждения",
+      "deleting": "Удаляем...",
+      "view": "Открыть"
+    },
+    "activity": {
+      "title": "Твоя активность",
+      "subtitle": "Твои комментарии и реакции на Нурлане.",
+      "commentsHeading": "Твои комментарии",
+      "reactionsHeading": "Истории, на которые ты реагировал",
+      "emptyComments": "Ты ещё нигде не комментировал.",
+      "emptyReactions": "Ты ещё ни на что не реагировал.",
+      "on": "к истории",
+      "delete": "Удалить",
+      "deleteConfirm": "Нажми ещё раз"
+    },
+    "settings": {
+      "title": "Настройки",
+      "profile": "Профиль",
+      "profileSubtitle": "Как тебя видят на Нурлане.",
+      "username": "Имя пользователя",
+      "usernameHelp": "Строчные латинские буквы, цифры, подчёркивание. 3–24 символа.",
+      "displayName": "Отображаемое имя",
+      "bio": "О себе",
+      "bioPlaceholder": "Пара слов о себе",
+      "avatarUrl": "Ссылка на аватар",
+      "saveProfile": "Сохранить профиль",
+      "profileSaved": "Сохранено.",
+      "email": "Email",
+      "emailSubtitle": "Мы отправим письмо с подтверждением на новый адрес.",
+      "newEmail": "Новый email",
+      "saveEmail": "Изменить email",
+      "emailSent": "Проверь почту для подтверждения.",
+      "password": "Пароль",
+      "passwordSubtitle": "Выбери что-то, чего нет в других сервисах.",
+      "newPassword": "Новый пароль",
+      "confirmPassword": "Повтори пароль",
+      "savePassword": "Изменить пароль",
+      "passwordSaved": "Пароль обновлён.",
+      "passwordMismatch": "Пароли не совпадают.",
+      "danger": "Опасная зона",
+      "dangerSubtitle": "Это безвозвратно удалит аккаунт, истории и комментарии.",
+      "deleteAccount": "Удалить аккаунт",
+      "deleteAccountConfirm": "Введи имя пользователя для подтверждения",
+      "deleteAccountButton": "Удалить навсегда",
+      "deleting": "Удаляем...",
+      "errorGeneric": "Что-то пошло не так.",
+      "errorUsernameTaken": "Это имя уже занято.",
+      "errorUsernameInvalid": "Имя: 3–24 символа, строчные латинские/цифры/подчёркивание."
+    },
+    "publicProfile": {
+      "joinedOn": "Зарегистрирован",
+      "stories": "Истории",
+      "noStories": "Пока нет публичных историй.",
+      "notFound": "Пользователь не найден."
+    }
   }
 }

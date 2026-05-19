@@ -41,6 +41,34 @@ export async function createComment(formData: FormData) {
   return { ok: true as const };
 }
 
+export async function deleteComment(commentId: string) {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "auth" as const };
+
+  const { data: row } = await supabase
+    .from("comments")
+    .select("story_id, author_id")
+    .eq("id", commentId)
+    .maybeSingle();
+  if (!row || row.author_id !== user.id) return { error: "auth" as const };
+
+  const { error } = await supabase
+    .from("comments")
+    .delete()
+    .eq("id", commentId)
+    .eq("author_id", user.id);
+  if (error) return { error: "db" as const };
+
+  revalidatePath(`/en/story/${row.story_id}`);
+  revalidatePath(`/ru/story/${row.story_id}`);
+  revalidatePath("/en/account/activity");
+  revalidatePath("/ru/account/activity");
+  return { ok: true as const };
+}
+
 export async function voteComment(commentId: string, vote: 1 | -1) {
   const supabase = await createSupabaseServerClient();
   const {

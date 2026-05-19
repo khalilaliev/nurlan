@@ -1,15 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useTranslations, useLocale } from "next-intl";
+import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { formatRelativeTime } from "@/lib/utils";
-import { createComment } from "@/app/actions/comments";
+import { createComment, deleteComment } from "@/app/actions/comments";
 
 type CommentNode = {
   id: string;
   body: string;
+  author_id: string | null;
   author_username: string;
   is_anonymous: boolean;
   created_at: string;
@@ -22,10 +24,12 @@ export function Comments({
   storyId,
   comments,
   isAuthed,
+  currentUserId,
 }: {
   storyId: string;
   comments: CommentNode[];
   isAuthed: boolean;
+  currentUserId?: string | null;
 }) {
   const t = useTranslations("comments");
 
@@ -51,6 +55,7 @@ export function Comments({
               comment={c}
               storyId={storyId}
               isAuthed={isAuthed}
+              currentUserId={currentUserId}
               depth={0}
             />
           ))}
@@ -116,16 +121,26 @@ function CommentItem({
   comment,
   storyId,
   isAuthed,
+  currentUserId,
   depth,
 }: {
   comment: CommentNode;
   storyId: string;
   isAuthed: boolean;
+  currentUserId?: string | null;
   depth: number;
 }) {
   const t = useTranslations("comments");
   const locale = useLocale();
   const [replying, setReplying] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleted, setDeleted] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  const canDelete =
+    !!currentUserId && comment.author_id === currentUserId && !deleted;
+
+  if (deleted) return null;
 
   return (
     <li
@@ -154,6 +169,31 @@ function CommentItem({
             {t("reply")}
           </button>
         )}
+        {canDelete && (
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={() => {
+              if (!confirmingDelete) {
+                setConfirmingDelete(true);
+                setTimeout(() => setConfirmingDelete(false), 4000);
+                return;
+              }
+              startTransition(async () => {
+                const res = await deleteComment(comment.id);
+                if (!res || "ok" in res) setDeleted(true);
+              });
+            }}
+            className={
+              confirmingDelete
+                ? "flex items-center gap-1 text-[var(--color-accent)]"
+                : "flex items-center gap-1 hover:text-[var(--color-foreground)]"
+            }
+          >
+            <Trash2 className="h-3 w-3" />
+            <span>{confirmingDelete ? t("deleteConfirm") : t("delete")}</span>
+          </button>
+        )}
       </div>
       {replying && (
         <div className="mt-3">
@@ -172,6 +212,7 @@ function CommentItem({
               comment={child}
               storyId={storyId}
               isAuthed={isAuthed}
+              currentUserId={currentUserId}
               depth={depth + 1}
             />
           ))}
