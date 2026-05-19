@@ -1,0 +1,93 @@
+{
+  "brand": {
+    "name": "Нурлан",
+    "tagline": "Истории, которые интернет правда хочет прочитать."
+  },
+  "nav": {
+    "feed": "Лента",
+    "trending": "В тренде",
+    "submit": "Рассказать историю",
+    "login": "Войти",
+    "signup": "Регистрация",
+    "logout": "Выйти",
+    "profile": "Профиль",
+    "language": "Язык"
+  },
+  "feed": {
+    "title": "Свежие истории",
+    "empty": "Пока ничего нет. Будь первым.",
+    "loadMore": "Показать ещё",
+    "filterAll": "Все",
+    "trending": "Сейчас в тренде",
+    "newest": "Новые",
+    "rising": "Набирают"
+  },
+  "story": {
+    "anonymous": "Аноним",
+    "by": "автор",
+    "minRead": "мин чтения",
+    "reactionsTitle": "Как тебе?",
+    "commentsTitle": "Обсуждение",
+    "share": "Поделиться",
+    "report": "Пожаловаться",
+    "aiScore": "ИИ-сигналы"
+  },
+  "reactions": {
+    "funny": "Смешно",
+    "insane": "Жесть",
+    "sad": "Грустно",
+    "cringe": "Кринж",
+    "mindblown": "Взрыв мозга",
+    "viral": "Вирус"
+  },
+  "submit": {
+    "title": "Расскажи свою историю",
+    "subtitle": "Настоящие истории от настоящих людей. Можно анонимно.",
+    "fieldTitle": "Заголовок",
+    "fieldTitlePlaceholder": "Короткий, цепляющий",
+    "fieldCategory": "Категория",
+    "fieldBody": "Твоя история",
+    "fieldBodyPlaceholder": "Не торопись. Детали важны.",
+    "fieldTags": "Теги",
+    "fieldTagsPlaceholder": "Через запятую",
+    "anonymous": "Опубликовать анонимно",
+    "submit": "Опубликовать",
+    "submitting": "Публикуем...",
+    "success": "Готово. История опубликована.",
+    "errorAuth": "Нужен аккаунт. Войди сначала.",
+    "errorGeneric": "Что-то пошло не так. Попробуй ещё раз."
+  },
+  "auth": {
+    "loginTitle": "С возвращением",
+    "loginSubtitle": "Войди, чтобы читать и реагировать.",
+    "signupTitle": "Создай аккаунт",
+    "signupSubtitle": "Бесплатно, 20 секунд.",
+    "email": "Email",
+    "password": "Пароль",
+    "submitLogin": "Войти",
+    "submitSignup": "Создать аккаунт",
+    "switchToSignup": "Нет аккаунта? Зарегистрироваться",
+    "switchToLogin": "Уже есть аккаунт? Войти",
+    "checkEmail": "Проверь почту для подтверждения.",
+    "errorCredentials": "Неверный email или пароль.",
+    "errorGeneric": "Что-то пошло не так."
+  },
+  "comments": {
+    "empty": "Будь первым комментатором.",
+    "placeholder": "Оставь комментарий...",
+    "submit": "Отправить",
+    "reply": "Ответить",
+    "sortTop": "Топ",
+    "sortNewest": "Новые",
+    "sortControversial": "Спорные"
+  },
+  "categories": {
+    "life": "Истории из жизни",
+    "relationships": "Отношения",
+    "school": "Школа",
+    "work": "Работа",
+    "cringe": "Кринж",
+    "horror": "Хоррор",
+    "weird": "Странное / Конспирология"
+  }
+}

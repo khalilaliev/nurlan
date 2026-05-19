@@ -1,0 +1,25 @@
+import { setRequestLocale, getTranslations } from "next-intl/server";
+import { SignupForm } from "./signup-form";
+
+export default async function SignupPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("auth");
+  return (
+    <div className="mx-auto max-w-md px-4 sm:px-6 py-16">
+      <header className="mb-6">
+        <h1 className="text-2xl font-semibold tracking-tight mb-1">
+          {t("signupTitle")}
+        </h1>
+        <p className="text-sm text-[var(--color-foreground-muted)]">
+          {t("signupSubtitle")}
+        </p>
+      </header>
+      <SignupForm />
+    </div>
+  );
+}
