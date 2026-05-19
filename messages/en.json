@@ -93,6 +93,13 @@
     "horror": "Horror Stories",
     "weird": "Conspiracy / Weird"
   },
+  "notFound": {
+    "kicker": "404",
+    "title": "This page wandered off.",
+    "subtitle": "The story you're looking for doesn't exist, was deleted, or never made it past the draft.",
+    "backHome": "Back to the feed",
+    "writeOne": "Write your own"
+  },
   "account": {
     "title": "Your account",
     "subtitle": "Manage your profile, stories, and activity.",
