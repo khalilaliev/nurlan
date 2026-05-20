@@ -51,9 +51,17 @@ export function MobileMenu({
   const [open, setOpen] = useState(false);
   const burgerRef = useRef<HTMLButtonElement>(null);
 
+  // The desktop nav fits at sm (640px) when the user is logged in (a single
+  // avatar + Submit button). When logged out, the same row has Submit +
+  // theme/locale controls + Log in + Sign up — it needs the lg breakpoint
+  // (1024px) to fit comfortably. So the burger button has to follow:
+  // visible up to whichever breakpoint the desktop nav starts using.
+  // Both class strings must appear as literals so Tailwind generates them.
+  const wrapperHidden = profile ? "sm:hidden" : "lg:hidden";
+
   return (
     <>
-      <div className="flex items-center sm:hidden">
+      <div className={cn("flex items-center", wrapperHidden)}>
         <BurgerButton
           ref={burgerRef}
           open={open}
@@ -191,8 +199,11 @@ function MenuPanel({
       // with an internal scroll fallback if the user adds a lot of content
       // later.
       className={cn(
-        "fixed right-0 top-[64px] z-[160] sm:hidden",
-        "w-[50vw] min-w-[260px] max-w-[360px]",
+        "fixed right-0 top-[64px] z-[160]",
+        // Match the burger's visibility breakpoint: hidden when the desktop
+        // nav has taken over, so resizing up doesn't leave a stranded panel.
+        profile ? "sm:hidden" : "lg:hidden",
+        "w-[75vw] min-w-[300px] max-w-[560px]",
         "max-h-[calc(100vh-80px)] overflow-y-auto",
         "rounded-bl-2xl",
         "border-l border-b border-[var(--color-border)]",

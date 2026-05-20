@@ -58,6 +58,8 @@ export async function Nav() {
             <SearchBar />
           </div>
 
+          {/* Burger menu: visible below sm when logged in, below lg when
+              logged out (so the desktop auth controls have room to breathe). */}
           <MobileMenu
             profile={
               profile
@@ -71,13 +73,14 @@ export async function Nav() {
             isAdmin={isAdmin}
           />
 
-          <nav className="hidden sm:flex items-center gap-2 shrink-0">
-            <Button
-              asChild
-              variant="accent"
-              size="md"
-              className="hidden sm:inline-flex"
-            >
+          <nav
+            className={
+              profile
+                ? "hidden sm:flex items-center gap-2 shrink-0"
+                : "hidden lg:flex items-center gap-2 shrink-0"
+            }
+          >
+            <Button asChild variant="accent" size="md">
               <Link href="/submit">✨ {t("submit")}</Link>
             </Button>
             {profile ? (
@@ -93,10 +96,7 @@ export async function Nav() {
                 <Link href="/login" className="nav-link px-3 py-1.5">
                   {t("login")}
                 </Link>
-                <Link
-                  href="/signup"
-                  className="hidden sm:inline-flex nav-link px-3 py-1.5"
-                >
+                <Link href="/signup" className="nav-link px-3 py-1.5">
                   {t("signup")}
                 </Link>
               </>

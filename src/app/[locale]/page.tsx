@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { FeedFilters, type FeedSort } from "@/components/feed-filters";
 import { Stagger, FadeIn } from "@/components/animated";
+import { AnimatedHeadline } from "@/components/animated-headline";
 import type { StoryFeedRow } from "@/lib/supabase/types";
 
 export const dynamic = "force-dynamic";
@@ -76,11 +77,12 @@ export default async function FeedPage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6 py-10">
-      <FadeIn>
-        <section className="mb-10">
-          <h1 className="text-5xl sm:text-6xl font-semibold tracking-tight gradient-text mb-4 leading-[1.05]">
-            {t("brand.tagline")}
-          </h1>
+      <section className="mb-10">
+        <AnimatedHeadline
+          text={t("brand.tagline")}
+          className="text-5xl sm:text-6xl font-semibold tracking-tight mb-4 leading-[1.05]"
+        />
+        <FadeIn delay={0.5}>
           <p className="text-base text-[var(--color-foreground-muted)] max-w-xl">
             {t("feed.title")}.
           </p>
@@ -89,8 +91,8 @@ export default async function FeedPage({
               <Link href="/submit">✨ {t("nav.submit")}</Link>
             </Button>
           </div>
-        </section>
-      </FadeIn>
+        </FadeIn>
+      </section>
 
       {!isSupabaseConfigured() && <SetupNotice />}
 
