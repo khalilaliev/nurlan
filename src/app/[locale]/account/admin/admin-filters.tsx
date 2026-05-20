@@ -49,7 +49,7 @@ export function AdminFilters({ stories }: { stories: AdminStoryRowData[] }) {
               type="button"
               onClick={() => setFilter(f)}
               className={cn(
-                "px-3 py-1.5 rounded-[var(--radius)] text-xs font-medium transition-all whitespace-nowrap",
+                "px-3 py-1.5 rounded-[var(--radius)] p-2 text-sm font-medium transition-all whitespace-nowrap",
                 filter === f
                   ? "bg-[var(--color-accent)] text-[var(--color-accent-foreground)]"
                   : "text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-elevated)]",
@@ -63,7 +63,7 @@ export function AdminFilters({ stories }: { stories: AdminStoryRowData[] }) {
           placeholder={t("search")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="flex-1"
+          className="flex-1 p-2 text-sm"
         />
       </div>
 

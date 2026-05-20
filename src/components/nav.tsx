@@ -40,7 +40,7 @@ export async function Nav() {
 
   return (
     <NavMount>
-      <header className="glass border-b border-[var(--color-border)]">
+      <header className="site-header-inner border-b border-transparent transition-[background-color,backdrop-filter,border-color] duration-300 ease-out">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 sm:gap-6 px-4 sm:px-6">
           <Link
             href="/"
@@ -54,11 +54,9 @@ export async function Nav() {
             </span>
           </Link>
 
-          <div className="hidden sm:flex flex-1 justify-center min-w-0">
+          <div className="flex-1 flex justify-center min-w-0">
             <SearchBar />
           </div>
-
-          <div className="flex-1 sm:hidden" />
 
           <MobileMenu
             profile={
@@ -99,7 +97,7 @@ export async function Nav() {
                   asChild
                   variant="subtle"
                   size="md"
-                  className="hidden sm:inline-flex"
+                  className="hidden sm:inline-flex gradient-border-btn"
                 >
                   <Link href="/signup">{t("signup")}</Link>
                 </Button>

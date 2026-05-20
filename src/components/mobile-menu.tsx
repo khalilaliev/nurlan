@@ -6,7 +6,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useTranslations, useLocale } from "next-intl";
 import {
   Sparkles,
-  Search as SearchIcon,
   Sun,
   Moon,
   Globe,
@@ -15,11 +14,11 @@ import {
   LogOut,
   LogIn,
   ShieldAlert,
+  X,
 } from "lucide-react";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { signOut } from "@/app/actions/auth";
-import { searchStories, type SearchResult } from "@/app/actions/search";
 import { cn } from "@/lib/utils";
 
 type Theme = "light" | "dark";
@@ -44,21 +43,11 @@ export function MobileMenu({
   } | null;
   isAdmin: boolean;
 }) {
-  const t = useTranslations("nav");
   const [menuOpen, setMenuOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
 
   return (
     <>
-      <div className="flex items-center gap-1 sm:hidden">
-        <button
-          type="button"
-          onClick={() => setSearchOpen(true)}
-          aria-label={t("search")}
-          className="cursor-pointer h-10 w-10 rounded-full flex items-center justify-center text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-elevated)] transition-colors"
-        >
-          <SearchIcon className="h-5 w-5" />
-        </button>
+      <div className="flex items-center sm:hidden">
         <BurgerButton open={menuOpen} onClick={() => setMenuOpen(!menuOpen)} />
       </div>
 
@@ -71,11 +60,32 @@ export function MobileMenu({
           />
         )}
       </AnimatePresence>
-
-      <AnimatePresence>
-        {searchOpen && <SearchOverlay onClose={() => setSearchOpen(false)} />}
-      </AnimatePresence>
     </>
+  );
+}
+
+function CloseButton({ onClose }: { onClose: () => void }) {
+  const t = useTranslations("nav");
+  return (
+    <button
+      type="button"
+      onClick={onClose}
+      aria-label={t("menuClose")}
+      className={cn(
+        "cursor-pointer absolute top-4 right-4 z-10",
+        "h-11 w-11 rounded-full",
+        "flex items-center justify-center",
+        "border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/60 backdrop-blur",
+        "text-[var(--color-foreground-muted)]",
+        "transition-all duration-200 ease-out",
+        "hover:rotate-90 hover:text-[var(--color-foreground)] hover:border-[var(--color-accent)]/50 hover:bg-[var(--color-accent-soft)]/40",
+        "hover:shadow-[0_4px_24px_-6px_rgba(225,29,72,0.35)]",
+        "active:scale-95",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-background)]",
+      )}
+    >
+      <X className="h-5 w-5" />
+    </button>
   );
 }
 
@@ -228,7 +238,8 @@ function MenuPanel({
         exit={{ x: "100%" }}
         transition={{ type: "spring", stiffness: 320, damping: 32 }}
       >
-        <div className="p-5">
+        <CloseButton onClose={onClose} />
+        <div className="p-5 pt-16">
           {profile ? (
             <button
               type="button"
@@ -461,129 +472,3 @@ function SectionLabel({
   );
 }
 
-function SearchOverlay({ onClose }: { onClose: () => void }) {
-  const t = useTranslations("nav");
-  const router = useRouter();
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [pending, startTransition] = useTransition();
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    setTimeout(() => inputRef.current?.focus(), 50);
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, []);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
-    const q = query.trim();
-    if (q.length < 2) {
-      setResults([]);
-      return;
-    }
-    const h = setTimeout(() => {
-      startTransition(async () => {
-        const data = await searchStories(q);
-        setResults(data);
-      });
-    }, 250);
-    return () => clearTimeout(h);
-  }, [query]);
-  /* eslint-enable react-hooks/set-state-in-effect */
-
-  return createPortal(
-    <div className="fixed inset-0 z-[210] sm:hidden">
-      <motion.div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.18 }}
-        onClick={onClose}
-        aria-hidden
-      />
-      <motion.div
-        className="absolute top-0 left-0 right-0 bg-[var(--color-surface)] border-b border-[var(--color-border)] shadow-2xl"
-        initial={{ y: "-100%" }}
-        animate={{ y: 0 }}
-        exit={{ y: "-100%" }}
-        transition={{ type: "spring", stiffness: 320, damping: 32 }}
-      >
-        <div className="p-4">
-          <div className="relative">
-            <SearchIcon className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--color-foreground-subtle)]" />
-            <input
-              ref={inputRef}
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={t("searchPlaceholder")}
-              aria-label={t("search")}
-              className="h-11 w-full rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] pl-11 pr-12 text-sm focus-visible:outline-none focus-visible:border-[var(--color-accent)]"
-            />
-            <button
-              type="button"
-              onClick={onClose}
-              className="cursor-pointer absolute right-2.5 top-1/2 -translate-y-1/2 text-xs uppercase font-semibold text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] px-2 py-1"
-            >
-              ✕
-            </button>
-          </div>
-        </div>
-        <div className="max-h-[60vh] overflow-y-auto pb-2">
-          {pending && results.length === 0 && (
-            <p className="px-5 py-3 text-sm text-[var(--color-foreground-subtle)]">
-              {t("searchHint")}
-            </p>
-          )}
-          {query.trim().length >= 2 &&
-            !pending &&
-            results.length === 0 && (
-              <p className="px-5 py-3 text-sm text-[var(--color-foreground-subtle)]">
-                {t("searchEmpty")}
-              </p>
-            )}
-          {results.length > 0 && (
-            <ul>
-              {results.map((r) => (
-                <li key={r.id}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onClose();
-                      router.push(`/story/${r.id}`);
-                    }}
-                    className="cursor-pointer w-full flex items-start gap-3 px-5 py-3 text-left hover:bg-[var(--color-surface-elevated)]"
-                  >
-                    <span className="shrink-0">{r.category_emoji ?? "📝"}</span>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm font-medium truncate">
-                        {r.title}
-                      </div>
-                      <div className="text-xs text-[var(--color-foreground-subtle)] mt-0.5">
-                        {t("searchBy")}{" "}
-                        {r.is_anonymous ? "anonymous" : `@${r.author_username}`}
-                      </div>
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </motion.div>
-    </div>,
-    document.body,
-  );
-}

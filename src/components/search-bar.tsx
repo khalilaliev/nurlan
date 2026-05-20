@@ -13,10 +13,22 @@ export function SearchBar() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [open, setOpen] = useState(false);
+  const [isNarrow, setIsNarrow] = useState(false);
   const [pending, startTransition] = useTransition();
   const containerRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Shorten the placeholder on small phones so the input doesn't show
+  // an awkwardly truncated string in the limited space between the logo
+  // and the burger menu.
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 479px)");
+    const update = () => setIsNarrow(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   // Close on outside click
   useEffect(() => {
@@ -101,7 +113,9 @@ export function SearchBar() {
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
-          placeholder={t("searchPlaceholder")}
+          placeholder={
+            isNarrow ? t("searchPlaceholderShort") : t("searchPlaceholder")
+          }
           aria-label={t("search")}
           className="h-10 w-full rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] pl-10 pr-10 text-sm text-[var(--color-foreground)] placeholder:text-[var(--color-foreground-subtle)] focus-visible:outline-none focus-visible:border-[var(--color-accent)] focus-visible:ring-2 focus-visible:ring-[var(--color-accent-soft)] transition-colors"
         />

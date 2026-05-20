@@ -178,7 +178,78 @@
   }
 }
 
+@keyframes gradient-border-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 300% 50%;
+  }
+}
+
 @layer components {
+  /* Animated gradient border using the padding-box / border-box trick.
+     The inner background is the theme surface; the visible border is a
+     gradient on a negative-inset pseudo-element behind the button. */
+  .gradient-border-btn {
+    position: relative;
+    background-clip: padding-box;
+    border: 1px solid transparent;
+    isolation: isolate;
+    transition: box-shadow 200ms ease, transform 200ms ease;
+  }
+
+  .gradient-border-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    margin: -1px;
+    border-radius: inherit;
+    background: linear-gradient(
+      110deg,
+      var(--color-foreground) 0%,
+      #e11d48 25%,
+      #f97316 50%,
+      #e11d48 75%,
+      var(--color-foreground) 100%
+    );
+    background-size: 300% 300%;
+    animation: gradient-border-shift 5s linear infinite;
+  }
+
+  .gradient-border-btn:hover {
+    box-shadow:
+      0 0 0 1px rgba(225, 29, 72, 0.15),
+      0 8px 24px -10px rgba(225, 29, 72, 0.45);
+  }
+
+  .gradient-border-btn:hover::before {
+    animation-duration: 2s;
+  }
+
+  .gradient-border-btn:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--color-background),
+      0 0 0 4px var(--color-accent);
+  }
+
+  /* Header background driven by `is-scrolled` on the sticky wrapper. At the
+     top of the page the header is fully transparent so the hero radial
+     gradients bleed through; once scrolled the wrapper gets `is-scrolled`,
+     which paints the inner header with a frosted glass effect. */
+  .site-header.is-scrolled .site-header-inner {
+    background: color-mix(in oklab, var(--color-surface) 72%, transparent);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border-bottom-color: color-mix(
+      in srgb,
+      var(--color-border) 70%,
+      transparent
+    );
+  }
+
   .nav-link {
     position: relative;
     font-size: 0.95rem;
@@ -222,6 +293,17 @@
   );
   background-size: 200% 100%;
   animation: shimmer 1.6s linear infinite;
+}
+
+/* Horizontally scrollable tab strip used on the admin page (and reusable
+   elsewhere). Hides the native scrollbar so the soft right-edge mask is
+   the only signal that there's more to scroll. */
+.admin-tabs {
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+}
+.admin-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 /* Custom scrollbar — thin, neutral by default, brand-tinted on hover.
