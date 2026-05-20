@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
+import { Pencil } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/guard";
 import { isCurrentUserAdmin } from "@/lib/supabase/admin-check";
@@ -125,6 +127,18 @@ export default async function StoryPage({
   if (!story) notFound();
   const s = story;
 
+  // story_feed nulls out author_id for anonymous stories. To know if the
+  // viewer is the author (so we can show Edit), fetch the underlying row.
+  let isAuthor = false;
+  if (user) {
+    const { data: authorCheck } = await supabase
+      .from("stories")
+      .select("author_id")
+      .eq("id", id)
+      .maybeSingle();
+    isAuthor = authorCheck?.author_id === user.id;
+  }
+
   const { data: commentRows } = await supabase
     .from("comments")
     .select("id, body, parent_id, is_anonymous, created_at, upvote_count, author_id")
@@ -195,11 +209,31 @@ export default async function StoryPage({
         <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight leading-tight mb-3 gradient-text">
           {s.title}
         </h1>
-        <div className="mb-8 text-sm text-[var(--color-foreground-muted)]">
-          {t("story.by")}{" "}
-          <span className="text-[var(--color-foreground)] font-medium">
-            {s.is_anonymous ? t("story.anonymous") : `@${s.author_username}`}
-          </span>
+        <div className="mb-8 flex items-center justify-between flex-wrap gap-3 text-sm text-[var(--color-foreground-muted)]">
+          <div>
+            {t("story.by")}{" "}
+            {s.is_anonymous ? (
+              <span className="text-[var(--color-foreground)] font-medium">
+                {t("story.anonymous")}
+              </span>
+            ) : (
+              <Link
+                href={`/user/${s.author_username}`}
+                className="text-[var(--color-foreground)] font-medium hover:text-[var(--color-accent)] transition-colors"
+              >
+                @{s.author_username}
+              </Link>
+            )}
+          </div>
+          {isAuthor && (
+            <Link
+              href={`/story/${s.id}/edit`}
+              className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--color-border)] text-xs font-medium text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:border-[var(--color-border-strong)] transition-colors"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              {t("submit.editButton")}
+            </Link>
+          )}
         </div>
 
         {s.media_urls && s.media_urls.length > 0 && (

@@ -5,6 +5,8 @@ import { isCurrentUserAdmin } from "@/lib/supabase/admin-check";
 import { Button } from "@/components/ui/button";
 import { SearchBar } from "@/components/search-bar";
 import { AccountMenu } from "@/components/account-menu";
+import { GuestControls } from "@/components/guest-controls";
+import { MobileMenu } from "@/components/mobile-menu";
 import { NavMount } from "@/components/nav-mount";
 
 async function getCurrentProfile() {
@@ -42,9 +44,9 @@ export async function Nav() {
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 sm:gap-6 px-4 sm:px-6">
           <Link
             href="/"
-            className="flex items-center gap-2 group shrink-0"
+            className="flex items-center gap-2 group shrink-0 nav-link"
           >
-            <span className="text-xl font-semibold gradient-text tracking-tight">
+            <span className="text-2xl font-semibold gradient-text tracking-tight">
               nurlan
             </span>
             <span className="hidden md:inline text-xs text-[var(--color-foreground-subtle)] transition-opacity group-hover:opacity-70">
@@ -52,15 +54,30 @@ export async function Nav() {
             </span>
           </Link>
 
-          <div className="flex-1 flex justify-center min-w-0">
+          <div className="hidden sm:flex flex-1 justify-center min-w-0">
             <SearchBar />
           </div>
 
-          <nav className="flex items-center gap-2 shrink-0">
+          <div className="flex-1 sm:hidden" />
+
+          <MobileMenu
+            profile={
+              profile
+                ? {
+                    username: profile.username,
+                    email: profile.email,
+                    avatarUrl: profile.avatar_url,
+                  }
+                : null
+            }
+            isAdmin={isAdmin}
+          />
+
+          <nav className="hidden sm:flex items-center gap-2 shrink-0">
             <Button
               asChild
               variant="accent"
-              size="sm"
+              size="md"
               className="hidden sm:inline-flex"
             >
               <Link href="/submit">✨ {t("submit")}</Link>
@@ -74,13 +91,14 @@ export async function Nav() {
               />
             ) : (
               <>
-                <Button asChild variant="ghost" size="sm">
-                  <Link href="/login">{t("login")}</Link>
-                </Button>
+                <GuestControls />
+                <Link href="/login" className="nav-link px-3 py-1.5">
+                  {t("login")}
+                </Link>
                 <Button
                   asChild
                   variant="subtle"
-                  size="sm"
+                  size="md"
                   className="hidden sm:inline-flex"
                 >
                   <Link href="/signup">{t("signup")}</Link>

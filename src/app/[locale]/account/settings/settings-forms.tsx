@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { AvatarUploader } from "@/components/avatar-uploader";
 import {
   updateProfile,
   updateEmail,
@@ -18,18 +19,21 @@ type Profile = {
   display_name: string | null;
   bio: string | null;
   avatar_url: string | null;
+  is_profile_public: boolean;
 };
 
 export function SettingsForms({
   profile,
   currentEmail,
+  userId,
 }: {
   profile: Profile;
   currentEmail: string;
+  userId: string;
 }) {
   return (
     <div className="space-y-6">
-      <ProfileSection profile={profile} />
+      <ProfileSection profile={profile} userId={userId} />
       <EmailSection currentEmail={currentEmail} />
       <PasswordSection />
       <DangerSection username={profile.username} />
@@ -85,11 +89,18 @@ function Label({ children }: { children: React.ReactNode }) {
   );
 }
 
-function ProfileSection({ profile }: { profile: Profile }) {
+function ProfileSection({
+  profile,
+  userId,
+}: {
+  profile: Profile;
+  userId: string;
+}) {
   const t = useTranslations("account.settings");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [, setAvatarUrl] = useState<string | null>(profile.avatar_url);
 
   return (
     <SectionShell title={t("profile")} subtitle={t("profileSubtitle")}>
@@ -141,15 +152,29 @@ function ProfileSection({ profile }: { profile: Profile }) {
           />
         </div>
         <div className="space-y-1.5">
-          <Label>{t("avatarUrl")}</Label>
-          <Input
-            name="avatar_url"
-            type="url"
-            defaultValue={profile.avatar_url ?? ""}
-            maxLength={500}
-            placeholder="https://"
+          <Label>{t("avatar")}</Label>
+          <AvatarUploader
+            userId={userId}
+            username={profile.username}
+            initialUrl={profile.avatar_url}
+            onChange={setAvatarUrl}
           />
         </div>
+
+        <label className="flex items-start gap-3 p-3 rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)] cursor-pointer">
+          <input
+            type="checkbox"
+            name="is_profile_public"
+            defaultChecked={profile.is_profile_public}
+            className="mt-0.5 h-4 w-4 rounded border-[var(--color-border-strong)] bg-[var(--color-surface)] accent-[var(--color-accent)]"
+          />
+          <div className="min-w-0">
+            <div className="text-sm font-medium">{t("publicProfile")}</div>
+            <p className="text-xs text-[var(--color-foreground-subtle)] mt-0.5">
+              {t("publicProfileHint")}
+            </p>
+          </div>
+        </label>
 
         {error && <p className="text-sm text-[var(--color-accent)]">{error}</p>}
         {saved && !error && (

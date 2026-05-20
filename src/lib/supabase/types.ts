@@ -27,9 +27,16 @@ type ProfileRow = {
   bio: string | null;
   reputation: number;
   is_admin: boolean;
+  is_profile_public: boolean;
   rules_accepted_at: string | null;
   created_at: string;
   updated_at: string;
+};
+
+type FollowRow = {
+  follower_id: string;
+  following_id: string;
+  created_at: string;
 };
 
 type CategoryRow = {
@@ -186,6 +193,12 @@ export type Database = {
           comment_id?: string | null;
         };
         Update: { status: "open" | "reviewed" | "dismissed" };
+        Relationships: [];
+      };
+      follows: {
+        Row: FollowRow;
+        Insert: { follower_id: string; following_id: string };
+        Update: never;
         Relationships: [];
       };
     };

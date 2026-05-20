@@ -9,7 +9,9 @@ import {
   type AdminStoryRowData,
 } from "./admin-story-row";
 
-const FILTERS = ["all", "published", "flagged", "removed", "draft"] as const;
+// Order: active states first, then "removed" (the soft-deleted bucket), then
+// the rare "all" escape hatch on the far right.
+const FILTERS = ["published", "flagged", "draft", "removed", "all"] as const;
 type Filter = (typeof FILTERS)[number];
 
 const FILTER_KEY: Record<Filter, "filterAll" | "filterPublished" | "filterFlagged" | "filterRemoved" | "filterDraft"> = {
@@ -22,7 +24,7 @@ const FILTER_KEY: Record<Filter, "filterAll" | "filterPublished" | "filterFlagge
 
 export function AdminFilters({ stories }: { stories: AdminStoryRowData[] }) {
   const t = useTranslations("admin");
-  const [filter, setFilter] = useState<Filter>("all");
+  const [filter, setFilter] = useState<Filter>("published");
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {

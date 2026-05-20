@@ -115,42 +115,70 @@ export function Stagger({
 
 export function CountUp({
   to,
-  duration = 1.2,
+  duration = 2,
   delay = 0,
   className,
   format,
+  locale,
 }: {
   to: number;
   duration?: number;
   delay?: number;
   className?: string;
   format?: (n: number) => string;
+  locale?: string;
 }) {
   const ref = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    if (!ref.current) return;
-    const obj = { val: 0 };
     const node = ref.current;
-    const ctx = gsap.context(() => {
+    if (!node) return;
+
+    // If IntersectionObserver isn't available, fall back to running immediately.
+    if (typeof IntersectionObserver === "undefined") {
+      runAnimation();
+      return;
+    }
+
+    let played = false;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && !played) {
+            played = true;
+            runAnimation();
+            observer.disconnect();
+          }
+        }
+      },
+      { threshold: 0.25 },
+    );
+    observer.observe(node);
+
+    function runAnimation() {
+      if (!node) return;
+      // Seed with the formatted zero immediately so we never flash 0 in
+      // the wrong locale format.
+      node.textContent = format ? format(0) : (0).toLocaleString(locale);
+      const obj = { val: 0 };
       gsap.to(obj, {
         val: to,
         duration,
         delay,
         ease: "power2.out",
         onUpdate: () => {
-          if (!node) return;
           const n = Math.round(obj.val);
-          node.textContent = format ? format(n) : n.toLocaleString();
+          node.textContent = format ? format(n) : n.toLocaleString(locale);
         },
       });
-    });
-    return () => ctx.revert();
-  }, [to, duration, delay, format]);
+    }
+
+    return () => observer.disconnect();
+  }, [to, duration, delay, format, locale]);
 
   return (
     <span ref={ref} className={className}>
-      0
+      {format ? format(0) : "0"}
     </span>
   );
 }

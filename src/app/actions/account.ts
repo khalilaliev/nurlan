@@ -22,6 +22,7 @@ const ProfileSchema = z.object({
   display_name: z.string().max(60).nullable(),
   bio: z.string().max(280).nullable(),
   avatar_url: z.string().url().max(500).nullable(),
+  is_profile_public: z.boolean(),
 });
 
 export async function updateProfile(formData: FormData) {
@@ -43,6 +44,7 @@ export async function updateProfile(formData: FormData) {
     display_name: trim(formData.get("display_name")),
     bio: trim(formData.get("bio")),
     avatar_url: trim(formData.get("avatar_url")),
+    is_profile_public: formData.get("is_profile_public") === "on",
   });
   if (!parsed.success) return { error: "errorUsernameInvalid" as const };
 
@@ -53,6 +55,7 @@ export async function updateProfile(formData: FormData) {
       display_name: parsed.data.display_name,
       bio: parsed.data.bio,
       avatar_url: parsed.data.avatar_url,
+      is_profile_public: parsed.data.is_profile_public,
     })
     .eq("id", user.id);
 

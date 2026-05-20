@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Trash2 } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { formatRelativeTime } from "@/lib/utils";
@@ -153,9 +154,18 @@ function CommentItem({
       style={{ marginLeft: depth * 8 }}
     >
       <div className="flex items-baseline gap-2 mb-1 text-xs">
-        <span className="font-medium text-[var(--color-foreground)]">
-          {comment.is_anonymous ? "Anonymous" : `@${comment.author_username}`}
-        </span>
+        {comment.is_anonymous ? (
+          <span className="font-medium text-[var(--color-foreground)]">
+            Anonymous
+          </span>
+        ) : (
+          <Link
+            href={`/user/${comment.author_username}`}
+            className="font-medium text-[var(--color-foreground)] hover:text-[var(--color-accent)] transition-colors"
+          >
+            @{comment.author_username}
+          </Link>
+        )}
         <span className="text-[var(--color-foreground-subtle)]">
           {formatRelativeTime(comment.created_at, locale)}
         </span>

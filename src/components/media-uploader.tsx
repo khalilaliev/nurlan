@@ -18,6 +18,13 @@ import {
   type MediaKind,
   type ValidationError,
 } from "@/lib/media/constants";
+import { detectMagic, readFirstBytes } from "@/lib/media/magic-bytes";
+
+function errorTranslationKey(
+  err: ValidationError | "errorUpload",
+): "mediaErrorType" {
+  return `media${err.charAt(0).toUpperCase()}${err.slice(1)}` as "mediaErrorType";
+}
 
 export type UploadedMedia = {
   url: string;
@@ -45,11 +52,13 @@ export function MediaUploader({
   userId,
   initial,
   onChange,
+  onErrorChange,
   maxFiles = MAX_FILES_PER_STORY,
 }: {
   userId: string;
   initial: UploadedMedia[];
   onChange: (media: UploadedMedia[]) => void;
+  onErrorChange?: (hasErrors: boolean) => void;
   maxFiles?: number;
 }) {
   const t = useTranslations("submit");
@@ -65,7 +74,9 @@ export function MediaUploader({
   );
   const [dragging, setDragging] = useState(false);
 
-  // Push successful uploads up to the parent whenever items change.
+  // Push successful uploads up to the parent whenever items change. Also
+  // report whether any item is in an error state so the form can disable
+  // submit until the user removes the offending tile(s).
   useEffect(() => {
     const done: UploadedMedia[] = items
       .filter(
@@ -80,6 +91,7 @@ export function MediaUploader({
         kind: i.kind,
       }));
     onChange(done);
+    onErrorChange?.(items.some((i) => i.status === "error"));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items]);
 
@@ -93,37 +105,62 @@ export function MediaUploader({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const accept = (files: FileList | File[]) => {
+  // Single source of truth used by BOTH drag-drop and file picker.
+  // Each file goes through three checks before it's allowed to upload:
+  //   1. MIME type     (validateFile)
+  //   2. File extension (validateFile)
+  //   3. Magic bytes   (this function, async)
+  // Only files that pass all three reach the storage layer.
+  const accept = async (files: FileList | File[]) => {
     const remaining = maxFiles - items.filter((i) => i.status !== "error").length;
     const accepted: Item[] = [];
     let rejectedMax = false;
-    Array.from(files).forEach((file) => {
+
+    for (const file of Array.from(files)) {
       if (accepted.length >= remaining) {
         rejectedMax = true;
-        return;
+        break;
       }
-      const err = validateFile(file);
-      const kind = file.type.startsWith("video/")
-        ? ("video" as const)
-        : ("image" as const);
-      if (err) {
+      const result = validateFile(file);
+      if (!result.ok) {
         accepted.push({
           id: makeId(),
-          kind,
+          kind: result.kind ?? "image",
           file,
           status: "error",
-          errorKey: err,
+          errorKey: result.error,
         });
-        return;
+        continue;
+      }
+      // Magic-byte check: the actual file signature must agree with the
+      // claimed kind. This catches renamed files (e.g. EXE → .jpg).
+      let signatureMatches = false;
+      try {
+        const bytes = await readFirstBytes(file, 16);
+        const detected = detectMagic(bytes);
+        if (result.kind === "image" && detected === "image") signatureMatches = true;
+        if (result.kind === "video" && detected === "video") signatureMatches = true;
+      } catch {
+        signatureMatches = false;
+      }
+      if (!signatureMatches) {
+        accepted.push({
+          id: makeId(),
+          kind: result.kind,
+          file,
+          status: "error",
+          errorKey: "errorBadSignature",
+        });
+        continue;
       }
       accepted.push({
         id: makeId(),
-        kind,
+        kind: result.kind,
         file,
         previewUrl: URL.createObjectURL(file),
         status: "uploading",
       });
-    });
+    }
 
     if (rejectedMax) {
       accepted.push({
@@ -221,7 +258,7 @@ export function MediaUploader({
         accept={ACCEPT_ATTR}
         className="hidden"
         onChange={(e) => {
-          if (e.target.files) accept(e.target.files);
+          if (e.target.files) void accept(e.target.files);
           e.target.value = "";
         }}
       />
@@ -238,7 +275,7 @@ export function MediaUploader({
           onDrop={(e) => {
             e.preventDefault();
             setDragging(false);
-            if (e.dataTransfer.files.length > 0) accept(e.dataTransfer.files);
+            if (e.dataTransfer.files.length > 0) void accept(e.dataTransfer.files);
           }}
           className={cn(
             "w-full rounded-[var(--radius-lg)] border-2 border-dashed transition-all flex flex-col items-center justify-center py-8 px-4 text-center gap-2 cursor-pointer",
@@ -293,7 +330,7 @@ function Tile({
       <div className="relative aspect-square rounded-[var(--radius-lg)] border border-[var(--color-accent)]/40 bg-[var(--color-accent-soft)]/30 p-3 flex flex-col items-center justify-center text-center gap-2">
         <AlertCircle className="h-5 w-5 text-[var(--color-accent)]" />
         <p className="text-xs text-[var(--color-accent)] leading-snug">
-          {item.errorKey && t(`media${item.errorKey.charAt(0).toUpperCase()}${item.errorKey.slice(1)}` as "mediaErrorMaxFiles")}
+          {item.errorKey && t(errorTranslationKey(item.errorKey))}
         </p>
         <button
           type="button"
@@ -348,7 +385,7 @@ function Tile({
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--color-accent-soft)]/80 backdrop-blur-sm p-3 text-center gap-2">
           <AlertCircle className="h-5 w-5 text-[var(--color-accent)]" />
           <p className="text-xs font-medium text-[var(--color-accent)] leading-snug">
-            {item.errorKey && t(`media${item.errorKey.charAt(0).toUpperCase()}${item.errorKey.slice(1)}` as "mediaErrorUpload")}
+            {item.errorKey && t(errorTranslationKey(item.errorKey))}
           </p>
           {item.file && (
             <button

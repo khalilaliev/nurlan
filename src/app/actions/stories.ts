@@ -4,6 +4,8 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { detectMagic, fetchFirstBytes } from "@/lib/media/magic-bytes";
+import { kindForUrl } from "@/lib/media/constants";
 
 const MAX_MEDIA = 5;
 
@@ -31,14 +33,7 @@ function getLocaleFromHeaders(h: Headers): "en" | "ru" {
   return (match?.[1] as "en" | "ru") ?? "en";
 }
 
-export async function createStory(formData: FormData) {
-  const locale = getLocaleFromHeaders(await headers());
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "errorAuth" as const };
-
+function parseStoryFormData(formData: FormData, locale: "en" | "ru") {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
   const allowedMediaPrefix = supabaseUrl
     ? `${supabaseUrl.replace(/\/$/, "")}/storage/v1/object/public/story-media/`
@@ -52,7 +47,7 @@ export async function createStory(formData: FormData) {
     ? rawMedia.filter((u) => u.startsWith(allowedMediaPrefix)).slice(0, MAX_MEDIA)
     : [];
 
-  const parsed = StorySchema.safeParse({
+  return StorySchema.safeParse({
     title: String(formData.get("title") ?? "").trim(),
     body: String(formData.get("body") ?? "").trim(),
     category_slug: String(formData.get("category_slug") ?? ""),
@@ -65,7 +60,46 @@ export async function createStory(formData: FormData) {
     language: locale,
     media_urls: mediaUrls,
   });
+}
+
+// Server-side magic-byte check on each uploaded media URL. Files are already
+// in our bucket (RLS prevented anyone else from putting them there), but we
+// re-validate the actual signature in case the client bypassed its own checks.
+async function validateMediaSignatures(urls: string[]): Promise<boolean> {
+  for (const url of urls) {
+    try {
+      const bytes = await fetchFirstBytes(url, 16);
+      const detected = detectMagic(bytes);
+      const expected = kindForUrl(url);
+      if (detected !== expected) return false;
+    } catch {
+      return false;
+    }
+  }
+  return true;
+}
+
+function revalidateStoryPages(storyId: string, locale: string) {
+  revalidatePath(`/${locale}`);
+  revalidatePath(`/en/story/${storyId}`);
+  revalidatePath(`/ru/story/${storyId}`);
+}
+
+export async function createStory(formData: FormData) {
+  const locale = getLocaleFromHeaders(await headers());
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "errorAuth" as const };
+
+  const parsed = parseStoryFormData(formData, locale);
   if (!parsed.success) return { error: "errorGeneric" as const };
+
+  if (parsed.data.media_urls.length > 0) {
+    const ok = await validateMediaSignatures(parsed.data.media_urls);
+    if (!ok) return { error: "errorBadMedia" as const };
+  }
 
   const { data, error } = await supabase
     .from("stories")
@@ -87,4 +121,52 @@ export async function createStory(formData: FormData) {
   revalidatePath(`/${locale}`);
   const newId: string = data.id;
   return { ok: true as const, id: newId };
+}
+
+export async function updateStory(storyId: string, formData: FormData) {
+  const locale = getLocaleFromHeaders(await headers());
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "errorAuth" as const };
+
+  // Author-only edit. Even though the RLS policy enforces this too, we check
+  // explicitly here for a cleaner error response and so we never even attempt
+  // the update if the caller isn't the author. (Admin moderation goes through
+  // adminRemoveStory / adminRestoreStory, not this endpoint.)
+  const { data: existing } = await supabase
+    .from("stories")
+    .select("author_id")
+    .eq("id", storyId)
+    .maybeSingle();
+  if (!existing) return { error: "errorNotFound" as const };
+  if (existing.author_id !== user.id) return { error: "errorForbidden" as const };
+
+  const parsed = parseStoryFormData(formData, locale);
+  if (!parsed.success) return { error: "errorGeneric" as const };
+
+  if (parsed.data.media_urls.length > 0) {
+    const ok = await validateMediaSignatures(parsed.data.media_urls);
+    if (!ok) return { error: "errorBadMedia" as const };
+  }
+
+  const { error } = await supabase
+    .from("stories")
+    .update({
+      title: parsed.data.title,
+      body: parsed.data.body,
+      category_slug: parsed.data.category_slug,
+      is_anonymous: parsed.data.is_anonymous,
+      tags: parsed.data.tags,
+      language: parsed.data.language,
+      media_urls: parsed.data.media_urls,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", storyId);
+
+  if (error) return { error: "errorGeneric" as const };
+
+  revalidateStoryPages(storyId, locale);
+  return { ok: true as const, id: storyId };
 }

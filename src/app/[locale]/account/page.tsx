@@ -3,7 +3,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
-import { FadeIn, Stagger, CountUp } from "@/components/animated";
+import { FadeIn, CountUp } from "@/components/animated";
+import { AnimatedCardGrid, AnimatedCard } from "@/components/animated-card";
 import { formatRelativeTime } from "@/lib/utils";
 import { FileText, Heart, MessageCircle, Eye, ArrowRight } from "lucide-react";
 
@@ -123,14 +124,11 @@ export default async function AccountOverviewPage({
       </Card>
       </FadeIn>
 
-      <Stagger
-        as="div"
-        className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
-      >
+      <AnimatedCardGrid className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {stats.map((s) => (
-          <Card
+          <AnimatedCard
             key={s.key}
-            className="relative overflow-hidden p-5 hover:border-[var(--color-border-strong)] hover:-translate-y-0.5 transition-all duration-200"
+            className="relative overflow-hidden p-5"
           >
             <div
               className={`absolute inset-0 bg-gradient-to-br ${s.accent} opacity-60 pointer-events-none`}
@@ -146,9 +144,9 @@ export default async function AccountOverviewPage({
                 {t(`stats.${s.key}`)}
               </div>
             </div>
-          </Card>
+          </AnimatedCard>
         ))}
-      </Stagger>
+      </AnimatedCardGrid>
 
       <FadeIn delay={0.15}>
       <Card className="p-6">

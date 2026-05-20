@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { Tag } from "lucide-react";
@@ -14,124 +14,45 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RulesModal } from "@/components/rules-modal";
 import {
   MediaUploader,
   urlsToMedia,
   type UploadedMedia,
 } from "@/components/media-uploader";
-import { createStory } from "@/app/actions/stories";
+import { updateStory } from "@/app/actions/stories";
 
-// Draft is scoped per-user so User B can't see User A's in-progress story
-// (which included media URLs in User A's private storage folder).
-function draftKey(userId: string) {
-  return `nurlan:submit-draft:${userId}`;
-}
-
-// One-time migration: wipe the old global key so leftover drafts from before
-// per-user scoping don't appear for whoever logs in next.
-const LEGACY_KEY = "nurlan:submit-draft";
-
-type Draft = {
-  title?: string;
-  body?: string;
-  category_slug?: string;
-  tags?: string;
-  is_anonymous?: boolean;
-  media_urls?: string[];
-};
-
-export function SubmitForm({
+export function EditStoryForm({
   categories,
-  rulesAccepted,
+  storyId,
   userId,
+  initial,
 }: {
   categories: { slug: string; name: string; emoji: string }[];
-  rulesAccepted: boolean;
+  storyId: string;
   userId: string;
+  initial: {
+    title: string;
+    body: string;
+    category_slug: string;
+    tags: string;
+    is_anonymous: boolean;
+    media_urls: string[];
+  };
 }) {
   const t = useTranslations("submit");
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const acceptedRef = useRef(rulesAccepted);
-  const [showRules, setShowRules] = useState(false);
 
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-  const [category, setCategory] = useState("");
-  const [tags, setTags] = useState("");
-  const [isAnonymous, setIsAnonymous] = useState(false);
-  const [media, setMedia] = useState<UploadedMedia[]>([]);
-  const [initialMedia, setInitialMedia] = useState<UploadedMedia[] | null>(null);
-  const [restored, setRestored] = useState(false);
+  const [title, setTitle] = useState(initial.title);
+  const [body, setBody] = useState(initial.body);
+  const [category, setCategory] = useState(initial.category_slug);
+  const [tags, setTags] = useState(initial.tags);
+  const [isAnonymous, setIsAnonymous] = useState(initial.is_anonymous);
+  const [media, setMedia] = useState<UploadedMedia[]>(
+    urlsToMedia(initial.media_urls),
+  );
   const [mediaHasErrors, setMediaHasErrors] = useState(false);
-
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
-    try {
-      // Clean up any pre-scoping leftover so it never bleeds into another user.
-      localStorage.removeItem(LEGACY_KEY);
-      const raw = localStorage.getItem(draftKey(userId));
-      if (raw) {
-        const draft = JSON.parse(raw) as Draft;
-        if (typeof draft.title === "string") setTitle(draft.title);
-        if (typeof draft.body === "string") setBody(draft.body);
-        if (typeof draft.category_slug === "string")
-          setCategory(draft.category_slug);
-        if (typeof draft.tags === "string") setTags(draft.tags);
-        if (typeof draft.is_anonymous === "boolean")
-          setIsAnonymous(draft.is_anonymous);
-        if (Array.isArray(draft.media_urls)) {
-          setInitialMedia(urlsToMedia(draft.media_urls));
-        } else {
-          setInitialMedia([]);
-        }
-      } else {
-        setInitialMedia([]);
-      }
-    } catch {
-      setInitialMedia([]);
-    }
-    setRestored(true);
-  }, [userId]);
-  /* eslint-enable react-hooks/set-state-in-effect */
-
-  useEffect(() => {
-    if (!restored) return;
-    try {
-      const empty =
-        !title &&
-        !body &&
-        !category &&
-        !tags &&
-        !isAnonymous &&
-        media.length === 0;
-      if (empty) {
-        localStorage.removeItem(draftKey(userId));
-        return;
-      }
-      const draft: Draft = {
-        title,
-        body,
-        category_slug: category,
-        tags,
-        is_anonymous: isAnonymous,
-        media_urls: media.map((m) => m.url),
-      };
-      localStorage.setItem(draftKey(userId), JSON.stringify(draft));
-    } catch {
-      // localStorage quota or disabled
-    }
-  }, [restored, title, body, category, tags, isAnonymous, media, userId]);
-
-  const clearDraft = () => {
-    try {
-      localStorage.removeItem(draftKey(userId));
-    } catch {
-      // ignore
-    }
-  };
 
   const buildFormData = (): FormData => {
     const fd = new FormData();
@@ -147,51 +68,28 @@ export function SubmitForm({
   const submit = async () => {
     setSubmitting(true);
     setError(null);
-    const res = await createStory(buildFormData());
+    const res = await updateStory(storyId, buildFormData());
     setSubmitting(false);
     if (res && "error" in res && res.error) {
-      const key = res.error as "errorAuth" | "errorGeneric" | "errorBadMedia";
+      const key = res.error as
+        | "errorAuth"
+        | "errorGeneric"
+        | "errorForbidden"
+        | "errorNotFound"
+        | "errorBadMedia";
       setError(t(key));
       return;
     }
-    if (res && "id" in res && typeof res.id === "string") {
-      clearDraft();
-      router.push(`/story/${res.id}`);
-    }
-  };
-
-  const handleClear = () => {
-    setTitle("");
-    setBody("");
-    setCategory("");
-    setTags("");
-    setIsAnonymous(false);
-    setMedia([]);
-    setInitialMedia([]);
-    clearDraft();
+    router.push(`/story/${storyId}`);
   };
 
   return (
     <form
       action={async () => {
-        if (!acceptedRef.current) {
-          setShowRules(true);
-          return;
-        }
         await submit();
       }}
       className="space-y-5"
     >
-      <RulesModal
-        open={showRules}
-        onCancel={() => setShowRules(false)}
-        onAccepted={() => {
-          acceptedRef.current = true;
-          setShowRules(false);
-          void submit();
-        }}
-      />
-
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-[var(--color-foreground-muted)] uppercase tracking-wider">
           {t("fieldTitle")}
@@ -246,14 +144,12 @@ export function SubmitForm({
         <label className="text-xs font-medium text-[var(--color-foreground-muted)] uppercase tracking-wider">
           {t("media")}
         </label>
-        {initialMedia !== null && (
-          <MediaUploader
-            userId={userId}
-            initial={initialMedia}
-            onChange={setMedia}
-            onErrorChange={setMediaHasErrors}
-          />
-        )}
+        <MediaUploader
+          userId={userId}
+          initial={urlsToMedia(initial.media_urls)}
+          onChange={setMedia}
+          onErrorChange={setMediaHasErrors}
+        />
         {mediaHasErrors && (
           <p className="text-xs text-[var(--color-accent)]">
             {t("mediaBlockedSubmit")}
@@ -295,24 +191,17 @@ export function SubmitForm({
           disabled={submitting || mediaHasErrors}
           className="flex-1"
         >
-          {submitting ? t("submitting") : t("submit")}
+          {submitting ? t("saving") : t("saveButton")}
         </Button>
-        {(title ||
-          body ||
-          category ||
-          tags ||
-          isAnonymous ||
-          media.length > 0) && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="lg"
-            onClick={handleClear}
-            disabled={submitting}
-          >
-            ✕
-          </Button>
-        )}
+        <Button
+          type="button"
+          variant="ghost"
+          size="lg"
+          onClick={() => router.push(`/story/${storyId}`)}
+          disabled={submitting}
+        >
+          {t("cancel")}
+        </Button>
       </div>
     </form>
   );

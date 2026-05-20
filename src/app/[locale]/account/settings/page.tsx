@@ -20,13 +20,17 @@ export default async function SettingsPage({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("username, display_name, bio, avatar_url")
+    .select("username, display_name, bio, avatar_url, is_profile_public")
     .eq("id", user.id)
     .maybeSingle();
 
   if (!profile) return null;
 
   return (
-    <SettingsForms profile={profile} currentEmail={user.email ?? ""} />
+    <SettingsForms
+      profile={profile}
+      currentEmail={user.email ?? ""}
+      userId={user.id}
+    />
   );
 }

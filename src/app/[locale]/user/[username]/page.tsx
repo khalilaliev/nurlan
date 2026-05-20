@@ -1,16 +1,60 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { Lock } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/guard";
 import { SetupNotice } from "@/components/setup-notice";
 import { Card } from "@/components/ui/card";
-import { StoryCard } from "@/components/story-card";
-import { FadeIn, Stagger, CountUp } from "@/components/animated";
+import { FadeIn, CountUp } from "@/components/animated";
+import { FollowButton } from "@/components/follow-button";
+import { ShareProfileButton } from "@/components/share-profile-button";
+import { MessageButton } from "@/components/message-button";
+import { FollowListTrigger } from "@/components/follow-list-modal";
+import {
+  ProfileTabs,
+  type CommentItem,
+  type ReactionItem,
+} from "@/components/profile-tabs";
 import { formatRelativeTime } from "@/lib/utils";
-import { FileText, Heart, Eye } from "lucide-react";
+import { FileText, Heart, MessageSquare, Eye } from "lucide-react";
 import type { StoryFeedRow } from "@/lib/supabase/types";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; username: string }>;
+}): Promise<Metadata> {
+  const { locale, username } = await params;
+  const t = await getTranslations({ locale, namespace: "profile" });
+
+  if (!isSupabaseConfigured()) {
+    return { title: `@${username}` };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username, display_name, bio")
+    .eq("username", username.toLowerCase())
+    .maybeSingle();
+
+  if (!profile) return { title: `@${username}` };
+
+  const title = t("title", { username: profile.username });
+  const description =
+    profile.bio?.trim() ||
+    t("description", { username: profile.username });
+
+  return {
+    title,
+    description,
+    openGraph: { title, description, type: "profile" },
+    twitter: { title, description, card: "summary" },
+  };
+}
 
 export default async function PublicProfilePage({
   params,
@@ -19,7 +63,7 @@ export default async function PublicProfilePage({
 }) {
   const { locale, username } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("account.publicProfile");
+  const t = await getTranslations("profile");
 
   if (!isSupabaseConfigured()) {
     return (
@@ -30,41 +74,151 @@ export default async function PublicProfilePage({
   }
 
   const supabase = await createSupabaseServerClient();
+  const {
+    data: { user: viewer },
+  } = await supabase.auth.getUser();
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, username, display_name, bio, avatar_url, created_at")
+    .select(
+      "id, username, display_name, bio, avatar_url, created_at, is_profile_public",
+    )
     .eq("username", username.toLowerCase())
     .maybeSingle();
 
   if (!profile) notFound();
 
-  const { data: stories } = await supabase
-    .from("story_feed")
-    .select("*")
-    .eq("author_id", profile.id)
-    .eq("is_anonymous", false)
-    .order("created_at", { ascending: false })
-    .limit(20);
+  const isOwn = viewer?.id === profile.id;
+  const isPrivate = !profile.is_profile_public && !isOwn;
 
-  const list = (stories ?? []) as StoryFeedRow[];
+  // Counts — cheap to compute on the profile load.
+  const [followersCountRes, followingCountRes, isFollowingRes] =
+    await Promise.all([
+      supabase
+        .from("follows")
+        .select("follower_id", { count: "exact", head: true })
+        .eq("following_id", profile.id),
+      supabase
+        .from("follows")
+        .select("following_id", { count: "exact", head: true })
+        .eq("follower_id", profile.id),
+      viewer && !isOwn
+        ? supabase
+            .from("follows")
+            .select("follower_id")
+            .eq("follower_id", viewer.id)
+            .eq("following_id", profile.id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
 
-  const totalViews = list.reduce((s, st) => s + (st.view_count ?? 0), 0);
-  const totalReactions = list.reduce(
-    (s, st) => s + (st.reaction_total ?? 0),
-    0,
-  );
+  const followersCount = followersCountRes.count ?? 0;
+  const followingCount = followingCountRes.count ?? 0;
+  const isFollowing = Boolean(isFollowingRes.data);
+
+  let stories: StoryFeedRow[] = [];
+  let commentItems: CommentItem[] = [];
+  let reactionItems: ReactionItem[] = [];
+  let totalReactions = 0;
+  let totalCommentsReceived = 0;
+  let totalViews = 0;
+
+  if (!isPrivate) {
+    const { data: storyRows } = await supabase
+      .from("story_feed")
+      .select("*")
+      .eq("author_id", profile.id)
+      .eq("is_anonymous", false)
+      .order("created_at", { ascending: false })
+      .limit(40);
+    stories = (storyRows ?? []) as StoryFeedRow[];
+
+    totalReactions = stories.reduce((s, r) => s + (r.reaction_total ?? 0), 0);
+    totalCommentsReceived = stories.reduce(
+      (s, r) => s + (r.comment_count ?? 0),
+      0,
+    );
+    totalViews = stories.reduce((s, r) => s + (r.view_count ?? 0), 0);
+
+    // Comments tab: this user's comments (non-anonymous), most recent first,
+    // joined with their stories for context.
+    const { data: commentRows } = await supabase
+      .from("comments")
+      .select("id, body, created_at, story_id, is_anonymous")
+      .eq("author_id", profile.id)
+      .eq("is_anonymous", false)
+      .order("created_at", { ascending: false })
+      .limit(30);
+
+    const storyIds = Array.from(
+      new Set((commentRows ?? []).map((c) => c.story_id)),
+    );
+    const titleByStoryId = new Map<string, string>();
+    if (storyIds.length > 0) {
+      const { data: titles } = await supabase
+        .from("story_feed")
+        .select("id, title")
+        .in("id", storyIds);
+      for (const row of titles ?? []) titleByStoryId.set(row.id, row.title);
+    }
+
+    commentItems = (commentRows ?? [])
+      .filter((c) => titleByStoryId.has(c.story_id))
+      .map((c) => ({
+        id: c.id,
+        body: c.body,
+        created_at: c.created_at,
+        story_id: c.story_id,
+        story_title: titleByStoryId.get(c.story_id) ?? "",
+      }));
+
+    // Reactions tab: stories this user has reacted to.
+    const { data: reactionRows } = await supabase
+      .from("reactions")
+      .select("type, story_id, created_at")
+      .eq("user_id", profile.id)
+      .order("created_at", { ascending: false })
+      .limit(30);
+
+    const reactionStoryIds = Array.from(
+      new Set((reactionRows ?? []).map((r) => r.story_id)),
+    );
+    if (reactionStoryIds.length > 0) {
+      const { data: reactStories } = await supabase
+        .from("story_feed")
+        .select("*")
+        .in("id", reactionStoryIds);
+      const storyById = new Map<string, StoryFeedRow>();
+      for (const s of (reactStories ?? []) as StoryFeedRow[]) {
+        storyById.set(s.id, s);
+      }
+      reactionItems = (reactionRows ?? [])
+        .filter((r) => storyById.has(r.story_id))
+        .map((r) => ({
+          story: storyById.get(r.story_id)!,
+          type: r.type as string,
+        }));
+    }
+  }
 
   const displayName = profile.display_name || profile.username;
+  const initial = profile.username.slice(0, 1).toUpperCase();
 
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6 py-10">
       <FadeIn>
-        <Card className="relative overflow-hidden p-6 sm:p-8 mb-8">
-          <div className="absolute -top-24 -left-24 h-64 w-64 rounded-full bg-[var(--color-accent-soft)] blur-3xl pointer-events-none" />
-          <div className="relative flex flex-col sm:flex-row gap-5 sm:items-center">
+        <Card className="relative overflow-hidden p-6 sm:p-8 mb-6">
+          <div
+            className="pointer-events-none absolute -top-24 -left-24 h-64 w-64 rounded-full bg-[var(--color-accent-soft)] blur-3xl"
+            aria-hidden
+          />
+          <div
+            className="pointer-events-none absolute -bottom-24 -right-16 h-56 w-56 rounded-full bg-orange-500/10 blur-3xl"
+            aria-hidden
+          />
+          <div className="relative flex flex-col sm:flex-row gap-5 sm:items-start">
             <div
-              className="h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-gradient-to-br from-[var(--color-accent)] to-orange-500 flex items-center justify-center text-3xl font-semibold text-white shadow-[var(--shadow-glow)] shrink-0"
+              className="h-24 w-24 sm:h-28 sm:w-28 rounded-full bg-gradient-to-br from-[var(--color-accent)] to-orange-500 flex items-center justify-center text-4xl font-semibold text-white shadow-[var(--shadow-glow)] shrink-0 ring-2 ring-white/10"
               aria-hidden
             >
               {profile.avatar_url ? (
@@ -75,55 +229,99 @@ export default async function PublicProfilePage({
                   className="h-full w-full rounded-full object-cover"
                 />
               ) : (
-                profile.username.slice(0, 1).toUpperCase()
+                initial
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
-                {displayName}
-              </h1>
-              <p className="text-sm text-[var(--color-foreground-muted)]">
-                @{profile.username}
-              </p>
+              <div className="flex flex-wrap items-start gap-3 justify-between">
+                <div className="min-w-0">
+                  <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
+                    {displayName}
+                  </h1>
+                  <p className="text-sm text-[var(--color-foreground-muted)]">
+                    @{profile.username}
+                  </p>
+                </div>
+                {!isOwn && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <FollowButton
+                      targetUserId={profile.id}
+                      initialFollowing={isFollowing}
+                      isAuthed={Boolean(viewer)}
+                    />
+                    <MessageButton />
+                    <ShareProfileButton />
+                  </div>
+                )}
+                {isOwn && (
+                  <span className="text-xs uppercase tracking-wider font-semibold text-[var(--color-foreground-subtle)] border border-[var(--color-border)] rounded-full px-3 py-1">
+                    {t("yourProfile")}
+                  </span>
+                )}
+              </div>
               {profile.bio && (
                 <p className="mt-3 text-sm text-[var(--color-foreground-muted)] leading-relaxed max-w-prose">
                   {profile.bio}
                 </p>
               )}
               <p className="mt-3 text-xs text-[var(--color-foreground-subtle)]">
-                {t("joinedOn")} {formatRelativeTime(profile.created_at, locale)}
+                {t("joinedOn")}{" "}
+                {formatRelativeTime(profile.created_at, locale)}
               </p>
+              <div className="mt-4 flex items-center gap-5">
+                <FollowListTrigger
+                  userId={profile.id}
+                  mode="followers"
+                  count={followersCount}
+                  label={t("followers")}
+                  emptyLabel={t("noFollowers")}
+                />
+                <FollowListTrigger
+                  userId={profile.id}
+                  mode="following"
+                  count={followingCount}
+                  label={t("following")}
+                  emptyLabel={t("noFollowing")}
+                />
+              </div>
             </div>
           </div>
 
-          <div className="relative mt-6 grid grid-cols-3 gap-2 sm:gap-3">
-            <Stat icon={FileText} value={list.length} />
-            <Stat icon={Heart} value={totalReactions} />
-            <Stat icon={Eye} value={totalViews} />
-          </div>
+          {!isPrivate && (
+            <div className="relative mt-6 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+              <Stat icon={FileText} value={stories.length} label={t("stats.stories")} />
+              <Stat icon={Heart} value={totalReactions} label={t("stats.reactions")} />
+              <Stat
+                icon={MessageSquare}
+                value={totalCommentsReceived}
+                label={t("stats.comments")}
+              />
+              <Stat icon={Eye} value={totalViews} label={t("stats.views")} />
+            </div>
+          )}
         </Card>
       </FadeIn>
 
-      <FadeIn delay={0.1}>
-        <h2 className="text-base font-semibold mb-4 px-1">{t("stories")}</h2>
-      </FadeIn>
-
-      {list.length === 0 ? (
+      {isPrivate ? (
         <FadeIn delay={0.1}>
-          <Card className="p-8 text-center">
+          <Card className="p-10 text-center">
+            <div className="mx-auto h-14 w-14 rounded-full bg-[var(--color-surface-elevated)] border border-[var(--color-border)] flex items-center justify-center mb-3">
+              <Lock className="h-6 w-6 text-[var(--color-foreground-muted)]" />
+            </div>
+            <h2 className="text-base font-semibold mb-1.5">{t("private")}</h2>
             <p className="text-sm text-[var(--color-foreground-muted)]">
-              {t("noStories")}
+              {t("privateBody")}
             </p>
           </Card>
         </FadeIn>
       ) : (
-        <Stagger as="ul" className="space-y-4">
-          {list.map((story) => (
-            <li key={story.id}>
-              <StoryCard story={story} />
-            </li>
-          ))}
-        </Stagger>
+        <FadeIn delay={0.1}>
+          <ProfileTabs
+            stories={stories}
+            comments={commentItems}
+            reactions={reactionItems}
+          />
+        </FadeIn>
       )}
     </div>
   );
@@ -132,14 +330,22 @@ export default async function PublicProfilePage({
 function Stat({
   icon: Icon,
   value,
+  label,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   value: number;
+  label: string;
 }) {
   return (
-    <div className="flex items-center gap-2 p-3 rounded-[var(--radius)] bg-[var(--color-surface-elevated)] border border-[var(--color-border)]">
-      <Icon className="h-4 w-4 text-[var(--color-foreground-muted)]" />
-      <CountUp to={value} className="text-base font-semibold tabular-nums" />
+    <div className="flex flex-col gap-1.5 p-3.5 rounded-[var(--radius-lg)] bg-[var(--color-surface-elevated)] border border-[var(--color-border)]">
+      <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-semibold text-[var(--color-foreground-subtle)]">
+        <Icon className="h-3 w-3" />
+        {label}
+      </div>
+      <CountUp
+        to={value}
+        className="text-2xl font-semibold tabular-nums tracking-tight"
+      />
     </div>
   );
 }

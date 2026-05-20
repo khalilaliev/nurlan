@@ -2,12 +2,12 @@
 
 import { useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
-import { Users, FileText, Heart, MessageCircle } from "lucide-react";
+import { Users, FileText, Trash2, MessageCircle } from "lucide-react";
 import gsap from "gsap";
 import { CountUp } from "@/components/animated";
 
 type Metric = {
-  key: "metricUsers" | "metricStories" | "metricReactions" | "metricComments";
+  key: "metricUsers" | "metricStories" | "metricDeleted" | "metricComments";
   value: number;
   Icon: React.ComponentType<{ className?: string }>;
   glow: string;
@@ -17,12 +17,12 @@ type Metric = {
 export function AdminAnalytics({
   users,
   stories,
-  reactions,
+  deleted,
   comments,
 }: {
   users: number;
   stories: number;
-  reactions: number;
+  deleted: number;
   comments: number;
 }) {
   const t = useTranslations("admin");
@@ -44,11 +44,11 @@ export function AdminAnalytics({
       ring: "ring-amber-500/20",
     },
     {
-      key: "metricReactions",
-      value: reactions,
-      Icon: Heart,
-      glow: "from-pink-500/30 via-pink-500/10",
-      ring: "ring-pink-500/20",
+      key: "metricDeleted",
+      value: deleted,
+      Icon: Trash2,
+      glow: "from-zinc-500/25 via-zinc-500/10",
+      ring: "ring-zinc-500/20",
     },
     {
       key: "metricComments",

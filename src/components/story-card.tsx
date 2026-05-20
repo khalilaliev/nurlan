@@ -34,14 +34,25 @@ export function StoryCard({ story }: { story: StoryFeedRow }) {
   const firstMediaKind = firstMedia ? kindForUrl(firstMedia) : null;
   const extraMediaCount = mediaUrls.length > 1 ? mediaUrls.length - 1 : 0;
 
+  // The whole card behaves like a link to the story, but the username badge is
+  // a *separate* link to the author's profile. Nesting two <a> tags is invalid
+  // HTML, so we render the card-wide click target as an absolutely positioned
+  // <Link> that sits BEHIND the rest of the content. Other interactive
+  // elements (the username link) sit above it with their own z-index.
   return (
-    <Link href={`/story/${story.id}`} className="block group">
-      <Card
-        className={cn(
-          "p-6 hover:border-[var(--color-border-strong)] transition-all duration-200 group-hover:translate-y-[-2px]",
-          story.is_featured && "border-[var(--color-accent)]/40",
-        )}
-      >
+    <Card
+      className={cn(
+        "relative p-6 hover:border-[var(--color-border-strong)] transition-all duration-200 hover:-translate-y-[2px]",
+        story.is_featured && "border-[var(--color-accent)]/40",
+      )}
+    >
+      <Link
+        href={`/story/${story.id}`}
+        className="absolute inset-0 z-0 rounded-[var(--radius-lg)]"
+        aria-label={story.title}
+      />
+
+      <div className="relative z-10 pointer-events-none">
         <div className="flex items-center gap-2 mb-3 text-xs">
           <Badge>
             <span>{story.category_emoji}</span>
@@ -57,7 +68,7 @@ export function StoryCard({ story }: { story: StoryFeedRow }) {
           </span>
         </div>
 
-        <h2 className="text-lg sm:text-xl font-semibold leading-snug tracking-tight text-[var(--color-foreground)] mb-2 group-hover:text-[var(--color-accent)] transition-colors">
+        <h2 className="text-lg sm:text-xl font-semibold leading-snug tracking-tight text-[var(--color-foreground)] mb-2 transition-colors">
           {story.title}
         </h2>
 
@@ -68,7 +79,7 @@ export function StoryCard({ story }: { story: StoryFeedRow }) {
               <img
                 src={firstMedia}
                 alt=""
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                className="h-full w-full object-cover transition-transform duration-300"
               />
             ) : (
               <>
@@ -97,32 +108,39 @@ export function StoryCard({ story }: { story: StoryFeedRow }) {
         <p className="text-sm text-[var(--color-foreground-muted)] leading-relaxed line-clamp-3">
           {preview}
         </p>
+      </div>
 
-        <div className="mt-4 flex items-center justify-between text-xs text-[var(--color-foreground-subtle)]">
-          <div className="flex items-center gap-3">
-            <span>
-              {story.is_anonymous ? t("story.anonymous") : `@${story.author_username}`}
-            </span>
-            <span>·</span>
-            <span>
-              {minutes} {t("story.minRead")}
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            {topReactions.length > 0 && (
-              <div className="flex items-center gap-0.5">
-                {topReactions.map(([type, n]) => (
-                  <span key={type} className="flex items-center gap-0.5">
-                    <span>{REACTION_EMOJI[type]}</span>
-                    <span>{n}</span>
-                  </span>
-                ))}
-              </div>
-            )}
-            <span>💬 {story.comment_count}</span>
-          </div>
+      <div className="relative z-10 mt-4 flex items-center justify-between text-xs text-[var(--color-foreground-subtle)]">
+        <div className="flex items-center gap-3">
+          {story.is_anonymous ? (
+            <span className="pointer-events-none">{t("story.anonymous")}</span>
+          ) : (
+            <Link
+              href={`/user/${story.author_username}`}
+              className="hover:text-[var(--color-accent)] transition-colors"
+            >
+              @{story.author_username}
+            </Link>
+          )}
+          <span className="pointer-events-none">·</span>
+          <span className="pointer-events-none">
+            {minutes} {t("story.minRead")}
+          </span>
         </div>
-      </Card>
-    </Link>
+        <div className="flex items-center gap-3 pointer-events-none">
+          {topReactions.length > 0 && (
+            <div className="flex items-center gap-0.5">
+              {topReactions.map(([type, n]) => (
+                <span key={type} className="flex items-center gap-0.5">
+                  <span>{REACTION_EMOJI[type]}</span>
+                  <span>{n}</span>
+                </span>
+              ))}
+            </div>
+          )}
+          <span>💬 {story.comment_count}</span>
+        </div>
+      </div>
+    </Card>
   );
 }

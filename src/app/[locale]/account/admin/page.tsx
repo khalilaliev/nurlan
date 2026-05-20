@@ -24,14 +24,21 @@ export default async function AdminPage({
 
   const [
     usersRes,
-    storiesCountRes,
-    reactionsRes,
+    activeStoriesRes,
+    deletedStoriesRes,
     commentsRes,
     storiesRes,
   ] = await Promise.all([
     supabase.from("profiles").select("id", { count: "exact", head: true }),
-    supabase.from("stories").select("id", { count: "exact", head: true }),
-    supabase.from("reactions").select("id", { count: "exact", head: true }),
+    // Active = anything that isn't soft-removed. Includes published/flagged/draft.
+    supabase
+      .from("stories")
+      .select("id", { count: "exact", head: true })
+      .neq("status", "removed"),
+    supabase
+      .from("stories")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "removed"),
     supabase.from("comments").select("id", { count: "exact", head: true }),
     supabase
       .from("stories")
@@ -69,8 +76,8 @@ export default async function AdminPage({
     <div className="space-y-8">
       <AdminAnalytics
         users={usersRes.count ?? 0}
-        stories={storiesCountRes.count ?? 0}
-        reactions={reactionsRes.count ?? 0}
+        stories={activeStoriesRes.count ?? 0}
+        deleted={deletedStoriesRes.count ?? 0}
         comments={commentsRes.count ?? 0}
       />
       <div>

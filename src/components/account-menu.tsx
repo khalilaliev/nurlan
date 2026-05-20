@@ -11,6 +11,7 @@ import {
   Globe,
   LogOut,
   Check,
+  User,
 } from "lucide-react";
 import gsap from "gsap";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
@@ -217,6 +218,12 @@ export function AccountMenu({
             </div>
 
             <div className="px-2 pb-2 space-y-0.5">
+              <MenuLink
+                href={`/user/${username}`}
+                icon={<User className="h-4 w-4" />}
+                label={t("menuMyProfile")}
+                onClick={() => setOpen(false)}
+              />
               <MenuLink
                 href="/account"
                 icon={<Settings className="h-4 w-4" />}
