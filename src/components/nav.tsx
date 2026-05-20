@@ -40,7 +40,7 @@ export async function Nav() {
 
   return (
     <NavMount>
-      <header className="site-header-inner border-b border-transparent backdrop-blur-[5px] transition-[background-color,backdrop-filter,border-color] duration-300 ease-out">
+      <header className="site-header-inner border-b border-transparent backdrop-blur-[24px] saturate-150 transition-[background-color,backdrop-filter,border-color] duration-300 ease-out">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 sm:gap-6 px-4 sm:px-6">
           <Link
             href="/"

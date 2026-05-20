@@ -48,7 +48,7 @@ export function FeedFilters({ active }: { active: FeedSort }) {
   return (
     <div
       ref={ref}
-      className="relative flex flex-wrap items-center gap-1 p-1 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] w-fit"
+      className="relative flex flex-wrap items-center p-1 gap-1 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] w-fit"
     >
       {ITEMS.map(({ key, Icon }) => {
         const isActive = key === active;
