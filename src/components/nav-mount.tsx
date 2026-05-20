@@ -8,23 +8,38 @@ export function NavMount({ children }: { children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   const [scrolled, setScrolled] = useState(false);
 
-  // Initial entrance animation.
+  // Entrance animation. CRITICAL: we clear the inline `transform` on
+  // complete. A non-`none` transform on this wrapper creates a "backdrop
+  // root" (per filter-effects-2 spec), which traps the inner header's
+  // `backdrop-filter` so it can't blur the actual page content behind it
+  // — only what's inside the wrapper (which is empty). Clearing the
+  // transform once the animation lands restores normal backdrop-filter
+  // behaviour. Opacity persists at 1, which is fine because opacity:1 is
+  // the default value and doesn't create a backdrop root.
   useEffect(() => {
     if (!ref.current) return;
     const ctx = gsap.context(() => {
       gsap.fromTo(
         ref.current,
         { opacity: 0, y: -12 },
-        { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.55,
+          ease: "power3.out",
+          onComplete: () => {
+            if (ref.current) {
+              gsap.set(ref.current, { clearProps: "transform,willChange" });
+            }
+          },
+        },
       );
     });
     return () => ctx.revert();
   }, []);
 
-  // Toggle frosted state once the user scrolls past the threshold. rAF
-  // throttling keeps this cheap; the handler itself is one read + one
-  // compare. State only updates when the boolean flips, so React re-renders
-  // are minimal.
+  // rAF-throttled scroll watcher. Only flips state on the boundary so React
+  // re-renders are minimal.
   useEffect(() => {
     let ticking = false;
     let lastScrolled = scrolled;
@@ -44,14 +59,9 @@ export function NavMount({ children }: { children: React.ReactNode }) {
       requestAnimationFrame(compute);
     };
 
-    // Set initial value (e.g. after navigation when scroll position is
-    // restored).
     compute();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-    // We intentionally don't depend on `scrolled` here — the closure-local
-    // `lastScrolled` mirrors it, and depending on state would re-attach the
-    // listener on every flip.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -40,7 +40,7 @@ export async function Nav() {
 
   return (
     <NavMount>
-      <header className="site-header-inner border-b border-transparent transition-[background-color,backdrop-filter,border-color] duration-300 ease-out">
+      <header className="site-header-inner border-b border-transparent backdrop-blur-[5px] transition-[background-color,backdrop-filter,border-color] duration-300 ease-out">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 sm:gap-6 px-4 sm:px-6">
           <Link
             href="/"
@@ -62,10 +62,10 @@ export async function Nav() {
             profile={
               profile
                 ? {
-                    username: profile.username,
-                    email: profile.email,
-                    avatarUrl: profile.avatar_url,
-                  }
+                  username: profile.username,
+                  email: profile.email,
+                  avatarUrl: profile.avatar_url,
+                }
                 : null
             }
             isAdmin={isAdmin}
@@ -93,14 +93,12 @@ export async function Nav() {
                 <Link href="/login" className="nav-link px-3 py-1.5">
                   {t("login")}
                 </Link>
-                <Button
-                  asChild
-                  variant="subtle"
-                  size="md"
-                  className="hidden sm:inline-flex gradient-border-btn"
+                <Link
+                  href="/signup"
+                  className="hidden sm:inline-flex nav-link px-3 py-1.5"
                 >
-                  <Link href="/signup">{t("signup")}</Link>
-                </Button>
+                  {t("signup")}
+                </Link>
               </>
             )}
           </nav>

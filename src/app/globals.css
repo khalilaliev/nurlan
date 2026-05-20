@@ -237,15 +237,26 @@
 
   /* Header background driven by `is-scrolled` on the sticky wrapper. At the
      top of the page the header is fully transparent so the hero radial
-     gradients bleed through; once scrolled the wrapper gets `is-scrolled`,
-     which paints the inner header with a frosted glass effect. */
+     gradients bleed through; once scrolled the wrapper gets `is-scrolled`
+     and the inner header gets frosted-glass treatment.
+     Note: the wrapper's inline `transform` is cleared by NavMount after
+     its entrance animation completes — otherwise the wrapper would form a
+     backdrop root and trap the blur. */
+  .site-header-inner {
+    transition:
+      background-color 280ms ease,
+      backdrop-filter 280ms ease,
+      -webkit-backdrop-filter 280ms ease,
+      border-color 280ms ease;
+  }
+
   .site-header.is-scrolled .site-header-inner {
-    background: color-mix(in oklab, var(--color-surface) 72%, transparent);
-    backdrop-filter: blur(16px) saturate(140%);
-    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    background: color-mix(in oklab, var(--color-surface) 70%, transparent);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
     border-bottom-color: color-mix(
       in srgb,
-      var(--color-border) 70%,
+      var(--color-border) 60%,
       transparent
     );
   }
