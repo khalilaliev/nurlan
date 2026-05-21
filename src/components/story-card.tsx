@@ -42,7 +42,7 @@ export function StoryCard({ story }: { story: StoryFeedRow }) {
   return (
     <Card
       className={cn(
-        "relative p-6 hover:border-[rgba(227,27,71,0.500)] transition-all duration-200",
+        "group relative p-6 hover:border-[var(--color-border-strong)] transition-all duration-200",
         story.is_featured && "border-[var(--color-accent)]/40",
       )}
     >
@@ -68,7 +68,7 @@ export function StoryCard({ story }: { story: StoryFeedRow }) {
           </span>
         </div>
 
-        <h2 className="text-lg sm:text-xl  font-semibold leading-snug tracking-tight text-[var(--color-foreground)] mb-2 transition-colors">
+        <h2 className="text-lg sm:text-xl font-semibold leading-snug tracking-tight text-[var(--color-foreground)] group-hover:text-[var(--color-accent)] mb-2 transition-colors">
           {story.title}
         </h2>
 

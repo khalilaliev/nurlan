@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Montserrat, JetBrains_Mono } from "next/font/google";
+import NextTopLoader from "nextjs-toploader";
 import "./globals.css";
 
 const montserrat = Montserrat({
@@ -38,7 +39,23 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className="min-h-full flex flex-col antialiased">{children}</body>
+      <body className="min-h-full flex flex-col antialiased">
+        {/* GitHub-style top progress bar shown during route navigation.
+            Rendered before children so it stacks above everything in the
+            normal flow (it portals to body internally as well). */}
+        <NextTopLoader
+          color="#e11d48"
+          height={3}
+          showSpinner={false}
+          shadow="0 0 12px #e11d48, 0 0 6px #e11d48"
+          speed={250}
+          easing="cubic-bezier(0.22, 1, 0.36, 1)"
+          crawlSpeed={180}
+          initialPosition={0.12}
+          zIndex={2147483647}
+        />
+        {children}
+      </body>
     </html>
   );
 }

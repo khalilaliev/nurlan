@@ -206,9 +206,9 @@ export default async function StoryPage({
             · {minutes} {t("story.minRead")}
           </span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight leading-tight mb-3 gradient-text">
+        <h2 className="text-2xl sm:text-4xl font-semibold tracking-tight leading-tight mb-3 gradient-text">
           {s.title}
-        </h1>
+        </h2>
         <div className="mb-8 flex items-center justify-between flex-wrap gap-3 text-sm text-[var(--color-foreground-muted)]">
           <div>
             {t("story.by")}{" "}

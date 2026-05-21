@@ -24,6 +24,7 @@
     "lucide-react": "^1.16.0",
     "next": "16.2.6",
     "next-intl": "^4.12.0",
+    "nextjs-toploader": "^3.9.17",
     "openai": "^6.38.0",
     "posthog-js": "^1.374.2",
     "react": "19.2.4",

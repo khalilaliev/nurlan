@@ -24,6 +24,15 @@
     0 8px 32px -8px rgba(225, 29, 72, 0.25);
 }
 
+/* Global H1 sizing. This rule lives OUTSIDE any @layer block on purpose:
+   unlayered styles beat layered ones in the CSS cascade, so this wins
+   against the Tailwind text-* / leading-* utilities currently applied to
+   H1s on every page. */
+/* h1 {
+  font-size: 50px;
+  line-height: 55px;
+} */
+
 @layer base {
   :root {
     color-scheme: dark;

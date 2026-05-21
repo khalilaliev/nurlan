@@ -235,7 +235,7 @@ export default async function PublicProfilePage({
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-start gap-3 justify-between">
                 <div className="min-w-0">
-                  <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
+                  <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight gradient-text">
                     {displayName}
                   </h1>
                   <p className="text-sm text-[var(--color-foreground-muted)]">
