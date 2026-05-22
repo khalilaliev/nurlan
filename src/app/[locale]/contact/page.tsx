@@ -131,17 +131,20 @@ function ChannelCard({
   accent: string;
   external?: boolean;
 }) {
+  // Each card uses `group-hover` and `group-active` so the press-down state
+  // on a touch device shows the same accent glow + arrow shift as a real
+  // hover on desktop. focus-visible covers keyboard reachability.
   return (
     <a
       href={href}
       target={external ? "_blank" : undefined}
       rel={external ? "noopener noreferrer" : undefined}
-      className="group relative flex items-center gap-4 p-4 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-border-strong)] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
+      className="group relative flex items-center gap-4 p-4 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-border-strong)] active:border-[var(--color-border-strong)] focus-visible:border-[var(--color-border-strong)] focus-visible:outline-none hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 overflow-hidden"
     >
-      {/* Per-channel accent glow on hover */}
+      {/* Per-channel accent glow — appears on hover, active, and focus. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-12 -right-12 h-32 w-32 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        className="pointer-events-none absolute -top-12 -right-12 h-32 w-32 rounded-full blur-2xl opacity-0 group-hover:opacity-100 group-active:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-300"
         style={{ background: accent }}
       />
       <div
@@ -158,7 +161,7 @@ function ChannelCard({
           {hint}
         </div>
       </div>
-      <ArrowUpRight className="relative h-4 w-4 shrink-0 text-[var(--color-foreground-subtle)] group-hover:text-[var(--color-foreground)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+      <ArrowUpRight className="relative h-4 w-4 shrink-0 text-[var(--color-foreground-subtle)] group-hover:text-[var(--color-foreground)] group-active:text-[var(--color-foreground)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-active:translate-x-0.5 group-active:-translate-y-0.5 transition-all" />
     </a>
   );
 }

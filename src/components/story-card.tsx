@@ -43,7 +43,7 @@ export function StoryCard({ story }: { story: StoryFeedRow }) {
     <Card
       className={cn(
         "group relative p-6 transition-all duration-200",
-        "hover:border-[var(--color-border-strong)] active:border-[var(--color-accent)]/60 focus-within:border-[var(--color-border-strong)]",
+        "hover:border-[var(--color-border-strong)] active:border-[var(--color-border-strong)] focus-within:border-[var(--color-border-strong)]",
         story.is_featured && "border-[var(--color-accent)]/40",
       )}
     >
@@ -69,7 +69,7 @@ export function StoryCard({ story }: { story: StoryFeedRow }) {
           </span>
         </div>
 
-        <h2 className="text-lg sm:text-xl font-semibold leading-snug tracking-tight text-[var(--color-foreground)] group-hover:text-[var(--color-accent)] group-active:text-[var(--color-accent)] group-focus-within:text-[var(--color-accent)] mb-2 transition-colors duration-200">
+        <h2 className="text-lg sm:text-xl font-semibold leading-snug tracking-tight text-[var(--color-foreground)] group-hover:text-[var(--color-accent)] mb-2 transition-colors duration-200">
           {story.title}
         </h2>
 

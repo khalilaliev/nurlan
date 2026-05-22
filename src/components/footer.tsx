@@ -26,26 +26,28 @@ async function getViewerUsername(): Promise<string | null> {
 }
 
 // Social links live outside the locale-prefixed Link helper because they're
-// external. Telegram brand colour is its blue (#229ED9); we keep all three
-// icons monochrome and use a hover tint so they read as a coherent set.
+// external. Each carries its own brand colour via a CSS variable so the
+// `hover:` / `active:` / `focus-visible:` text-color utilities can all
+// reference one stable Tailwind class — no dynamic class composition
+// (which would not survive Tailwind's static class extraction).
 const SOCIAL_LINKS = [
   {
     href: "https://www.twitch.tv/nurlan921",
     label: "Twitch",
     Icon: TwitchIcon,
-    hoverColor: "hover:text-[#9146FF]",
+    color: "#9146FF",
   },
   {
     href: "https://www.instagram.com/khalilaliev/",
     label: "Instagram",
     Icon: InstagramIcon,
-    hoverColor: "hover:text-[#E1306C]",
+    color: "#E1306C",
   },
   {
     href: "https://t.me/nurlan912",
     label: "Telegram",
     Icon: Send,
-    hoverColor: "hover:text-[#229ED9]",
+    color: "#229ED9",
   },
 ] as const;
 
@@ -113,16 +115,20 @@ export async function Footer() {
               {t("tagline")}
             </p>
 
-            {/* Social row */}
+            {/* Social row. Each icon's brand colour is fed in via a CSS
+                variable so hover / active / focus-visible can all share
+                one Tailwind utility (`hover:text-[var(--social-color)]`),
+                instead of having to compose class names at runtime. */}
             <div className="flex items-center gap-2 pt-1">
-              {SOCIAL_LINKS.map(({ href, label, Icon, hoverColor }) => (
+              {SOCIAL_LINKS.map(({ href, label, Icon, color }) => (
                 <a
                   key={href}
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className={`group inline-flex h-9 w-9 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-foreground-muted)] transition-all duration-200 hover:border-[var(--color-border-strong)] hover:scale-110 hover:-translate-y-0.5 ${hoverColor}`}
+                  style={{ ["--social-color" as string]: color }}
+                  className="group inline-flex h-9 w-9 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-foreground-muted)] transition-all duration-200 hover:border-[var(--color-border-strong)] hover:scale-110 hover:-translate-y-0.5 active:scale-95 active:border-[var(--color-border-strong)] focus-visible:outline-none focus-visible:border-[var(--color-border-strong)] focus-visible:scale-110 hover:text-[var(--social-color)] active:text-[var(--social-color)] focus-visible:text-[var(--social-color)]"
                 >
                   <Icon className="h-4 w-4 transition-transform" />
                 </a>

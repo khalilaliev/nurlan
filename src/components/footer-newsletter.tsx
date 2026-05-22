@@ -44,7 +44,7 @@ export function FooterNewsletter() {
           placeholder={t("newsletterPlaceholder")}
           aria-label={t("newsletterTitle")}
           disabled={pending}
-          className="h-10 py-3 flex-1 min-w-0 rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3.5 text-sm text-[var(--color-foreground)] placeholder:text-[var(--color-foreground-subtle)] focus-visible:outline-none focus-visible:border-[var(--color-accent)] focus-visible:ring-2 focus-visible:ring-[var(--color-accent-soft)] transition-colors disabled:opacity-60"
+          className="h-10 py-3 flex-1 min-w-0 rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3.5 text-base sm:text-sm text-[var(--color-foreground)] placeholder:text-[var(--color-foreground-subtle)] focus-visible:outline-none focus-visible:border-[var(--color-accent)] focus-visible:ring-2 focus-visible:ring-[var(--color-accent-soft)] transition-colors disabled:opacity-60"
         />
         <button
           type="submit"

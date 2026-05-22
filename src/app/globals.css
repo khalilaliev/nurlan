@@ -108,12 +108,20 @@
       radial-gradient(ellipse 60% 40% at 10% 95%,
         rgba(99, 102, 241, 0.10),
         transparent 60%);
-    background-attachment: fixed;
+    background-repeat: no-repeat;
+    /* iOS Safari mis-renders `background-attachment: fixed` — gradients
+       get pinned to weird references and the page looks "cut off" at
+       certain scroll positions. Using the default scrolling attachment
+       and a no-repeat policy avoids that and keeps the gradient blob
+       anchored to the document. */
   }
 
   /* Light mode: a layered mesh with a dotted texture overlay. Pure white is
      harsh; the warm off-white base + faint rose/peach blobs + 3%-opacity
-     dot grid gives the page depth without distracting the reader. */
+     dot grid gives the page depth without distracting the reader.
+     Same iOS Safari fix as dark mode — we don't pin backgrounds to the
+     viewport; gradients anchor to the document. The dot grid tiles
+     naturally as the user scrolls. */
   [data-theme="light"] body {
     background-image:
       radial-gradient(ellipse 70% 50% at 15% -5%,
@@ -129,7 +137,7 @@
         rgba(11, 11, 18, 0.045) 1px,
         transparent 1px);
     background-size: auto, auto, auto, 24px 24px;
-    background-attachment: fixed, fixed, fixed, scroll;
+    background-repeat: no-repeat, no-repeat, no-repeat, repeat;
   }
 
   ::selection {
