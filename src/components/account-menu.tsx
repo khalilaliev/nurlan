@@ -217,7 +217,7 @@ export function AccountMenu({
               </div>
             </div>
 
-            <div className="px-2 pb-2 space-y-0.5">
+            <div className="p-2 pb-2 space-y-0.5">
               <MenuLink
                 href={`/user/${username}`}
                 icon={<User className="h-4 w-4" />}

@@ -92,6 +92,33 @@ type CommentVoteRow = {
   created_at: string;
 };
 
+type StoryViewRow = {
+  story_id: string;
+  viewer_id: string;
+  created_at: string;
+};
+
+type NewsletterSubscriberRow = {
+  id: string;
+  email: string;
+  user_id: string | null;
+  locale: "en" | "ru";
+  source: string | null;
+  created_at: string;
+};
+
+type ContactMessageRow = {
+  id: string;
+  name: string;
+  email: string;
+  subject: string | null;
+  body: string;
+  user_id: string | null;
+  locale: "en" | "ru";
+  status: "new" | "replied" | "closed";
+  created_at: string;
+};
+
 type ReportRow = {
   id: string;
   reporter_id: string;
@@ -182,6 +209,36 @@ export type Database = {
         Row: CommentVoteRow;
         Insert: { comment_id: string; user_id: string; vote: -1 | 1 };
         Update: { vote: -1 | 1 };
+        Relationships: [];
+      };
+      story_views: {
+        Row: StoryViewRow;
+        Insert: { story_id: string; viewer_id: string };
+        Update: Partial<StoryViewRow>;
+        Relationships: [];
+      };
+      newsletter_subscribers: {
+        Row: NewsletterSubscriberRow;
+        Insert: {
+          email: string;
+          user_id?: string | null;
+          locale?: "en" | "ru";
+          source?: string | null;
+        };
+        Update: Partial<NewsletterSubscriberRow>;
+        Relationships: [];
+      };
+      contact_messages: {
+        Row: ContactMessageRow;
+        Insert: {
+          name: string;
+          email: string;
+          body: string;
+          subject?: string | null;
+          user_id?: string | null;
+          locale?: "en" | "ru";
+        };
+        Update: { status: "new" | "replied" | "closed" };
         Relationships: [];
       };
       reports: {

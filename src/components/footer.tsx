@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
-import { Heart } from "lucide-react";
+import { Send } from "lucide-react";
+import { TwitchIcon, InstagramIcon } from "@/components/brand-icons";
 import { Link } from "@/i18n/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { GuestControls } from "@/components/guest-controls";
@@ -24,6 +25,30 @@ async function getViewerUsername(): Promise<string | null> {
   }
 }
 
+// Social links live outside the locale-prefixed Link helper because they're
+// external. Telegram brand colour is its blue (#229ED9); we keep all three
+// icons monochrome and use a hover tint so they read as a coherent set.
+const SOCIAL_LINKS = [
+  {
+    href: "https://www.twitch.tv/nurlan921",
+    label: "Twitch",
+    Icon: TwitchIcon,
+    hoverColor: "hover:text-[#9146FF]",
+  },
+  {
+    href: "https://www.instagram.com/khalilaliev/",
+    label: "Instagram",
+    Icon: InstagramIcon,
+    hoverColor: "hover:text-[#E1306C]",
+  },
+  {
+    href: "https://t.me/nurlan912",
+    label: "Telegram",
+    Icon: Send,
+    hoverColor: "hover:text-[#229ED9]",
+  },
+] as const;
+
 export async function Footer() {
   const t = await getTranslations("footer");
   const username = await getViewerUsername();
@@ -38,17 +63,18 @@ export async function Footer() {
   const companyLinks = [
     { href: "/about", label: t("about") },
     { href: "/news", label: t("news") },
+    { href: "/contact", label: t("contact") },
   ];
 
   const accountLinks = isAuthed
     ? [
-        { href: `/user/${username}`, label: t("myProfile") },
-        { href: "/account", label: t("settings") },
-      ]
+      { href: `/user/${username}`, label: t("myProfile") },
+      { href: "/account", label: t("settings") },
+    ]
     : [
-        { href: "/login", label: t("login") },
-        { href: "/signup", label: t("signup") },
-      ];
+      { href: "/login", label: t("login") },
+      { href: "/signup", label: t("signup") },
+    ];
 
   const legalLinks = [
     { href: "/privacy", label: t("privacy") },
@@ -79,13 +105,29 @@ export async function Footer() {
 
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6 py-12 sm:py-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10 mb-12">
-          <div className="lg:col-span-2 space-y-3 max-w-sm">
+          <div className="lg:col-span-2 space-y-4 max-w-sm">
             <div className="text-xl font-semibold gradient-text tracking-tight">
               nurlan
             </div>
             <p className="text-sm text-[var(--color-foreground-muted)] leading-relaxed">
               {t("tagline")}
             </p>
+
+            {/* Social row */}
+            <div className="flex items-center gap-2 pt-1">
+              {SOCIAL_LINKS.map(({ href, label, Icon, hoverColor }) => (
+                <a
+                  key={href}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  className={`group inline-flex h-9 w-9 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-foreground-muted)] transition-all duration-200 hover:border-[var(--color-border-strong)] hover:scale-110 hover:-translate-y-0.5 ${hoverColor}`}
+                >
+                  <Icon className="h-4 w-4 transition-transform" />
+                </a>
+              ))}
+            </div>
           </div>
 
           <FooterColumn heading={t("product")} links={productLinks} />
@@ -113,9 +155,8 @@ export async function Footer() {
 
           <GuestControls />
 
-          <p className="flex items-center gap-1.5 text-center sm:text-right">
-            {t("madeWith")}
-            <Heart className="h-3 w-3 fill-[var(--color-accent)] text-[var(--color-accent)]" />
+          <p className="text-center sm:text-right font-medium tracking-tight">
+            <span className="gradient-text">{t("signature")}</span>
           </p>
         </div>
       </div>

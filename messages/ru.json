@@ -209,9 +209,16 @@
     "newsletterBody": "Подборка лучших историй раз в неделю.",
     "newsletterPlaceholder": "your@email.com",
     "newsletterSubmit": "Подписаться",
-    "newsletterThanks": "Спасибо — на связи.",
+    "newsletterSending": "Подписываем...",
+    "newsletterThanks": "Спасибо — ты в списке.",
+    "newsletterError": "Что-то пошло не так. Попробуй ещё.",
     "rights": "Все права защищены.",
-    "madeWith": "Сделано с"
+    "signature": "Истории — главное.",
+    "social": "Соцсети",
+    "contact": "Связаться",
+    "followTwitch": "Twitch",
+    "followInstagram": "Instagram",
+    "followTelegram": "Telegram"
   },
   "about": {
     "kicker": "О сайте",
@@ -348,6 +355,32 @@
     "enforcementBody": "Админы могут удалить любую историю или комментарий, нарушающий правила. Первое нарушение — обычно удаление с пометкой. Повторные — потеря аккаунта. Ненависть и CSAM — мгновенный бан.",
     "appealTitle": "Если считаешь, что мы ошиблись",
     "appealBody": "Напиши на khalilaliev0@gmail.com — посмотрим. Ошибки бывают, лучше их исправить, чем оставить."
+  },
+  "contact": {
+    "kicker": "Связаться",
+    "title": "Давай поговорим.",
+    "lede": "Пресса, партнёрства, баги или просто привет — пиши. Я читаю каждое сообщение.",
+    "name": "Как тебя зовут",
+    "namePlaceholder": "Как к тебе обращаться?",
+    "email": "Email",
+    "emailPlaceholder": "your@email.com",
+    "subject": "Тема (необязательно)",
+    "subjectPlaceholder": "В одну строчку",
+    "body": "Сообщение",
+    "bodyPlaceholder": "Не торопись. Детали важны.",
+    "submit": "Отправить",
+    "sending": "Отправляем...",
+    "thanks": "Спасибо — отвечу в ближайшее время.",
+    "thanksBody": "Сообщение у меня. Если срочно — пиши в Телеграм.",
+    "errorInvalid": "Какие-то поля заполнены неверно. Проверь и попробуй ещё.",
+    "errorGeneric": "Не получилось отправить. Попробуй через минуту.",
+    "or": "Или связаться напрямую",
+    "channels": {
+      "twitch": "Лови меня в прямом эфире",
+      "instagram": "Напиши в директ",
+      "telegram": "Мой канал",
+      "email": "Почта"
+    }
   },
   "notFound": {
     "kicker": "404",

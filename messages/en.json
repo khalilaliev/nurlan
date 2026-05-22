@@ -209,9 +209,16 @@
     "newsletterBody": "Get weekly story highlights.",
     "newsletterPlaceholder": "your@email.com",
     "newsletterSubmit": "Subscribe",
-    "newsletterThanks": "Thanks — we'll be in touch.",
+    "newsletterSending": "Subscribing...",
+    "newsletterThanks": "Thanks — you're on the list.",
+    "newsletterError": "Something went wrong. Try again.",
     "rights": "All rights reserved.",
-    "madeWith": "Made with"
+    "signature": "Stories first.",
+    "social": "Social",
+    "contact": "Contact",
+    "followTwitch": "Twitch",
+    "followInstagram": "Instagram",
+    "followTelegram": "Telegram"
   },
   "about": {
     "kicker": "About",
@@ -348,6 +355,32 @@
     "enforcementBody": "Admins can remove any story or comment that breaks these rules. First offense is usually a removal with a note. Repeat offenders lose their account. Hate speech and CSAM are instant bans.",
     "appealTitle": "If you think we got it wrong",
     "appealBody": "Email khalilaliev0@gmail.com and we'll look at it. Mistakes happen — we'd rather fix one than let it stand."
+  },
+  "contact": {
+    "kicker": "Contact",
+    "title": "Let's talk.",
+    "lede": "Press, partnerships, bug reports, or just hi — drop a note. I read every message.",
+    "name": "Your name",
+    "namePlaceholder": "How should I address you?",
+    "email": "Email",
+    "emailPlaceholder": "your@email.com",
+    "subject": "Subject (optional)",
+    "subjectPlaceholder": "One-line summary",
+    "body": "Your message",
+    "bodyPlaceholder": "Take your time. The good details matter.",
+    "submit": "Send message",
+    "sending": "Sending...",
+    "thanks": "Thanks — I'll get back to you soon.",
+    "thanksBody": "Your message is in my inbox. If it's urgent, ping me on Telegram.",
+    "errorInvalid": "Some fields don't look right. Check and try again.",
+    "errorGeneric": "Couldn't send the message. Try again in a minute.",
+    "or": "Or reach out directly",
+    "channels": {
+      "twitch": "Catch me live",
+      "instagram": "DM me",
+      "telegram": "My channel",
+      "email": "Email"
+    }
   },
   "notFound": {
     "kicker": "404",

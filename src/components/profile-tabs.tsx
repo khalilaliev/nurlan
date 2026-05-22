@@ -50,7 +50,15 @@ export function ProfileTabs({
 
   return (
     <div>
-      <div className="flex items-center gap-1 p-1 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] w-fit mb-6">
+      <div
+        className="admin-tabs flex items-center gap-1 p-1 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] w-full max-w-full overflow-x-auto mb-6"
+      // style={{
+      //   WebkitMaskImage:
+      //     "linear-gradient(to right, black calc(100% - 24px), transparent)",
+      //   maskImage:
+      //     "linear-gradient(to right, black calc(100% - 24px), transparent)",
+      // }}
+      >
         <TabButton
           active={tab === "stories"}
           onClick={() => setTab("stories")}
@@ -179,7 +187,7 @@ function TabButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "cursor-pointer inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-[var(--radius)] text-sm font-medium transition-all",
+        "cursor-pointer shrink-0 inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-[var(--radius)] text-sm font-medium transition-all whitespace-nowrap",
         active
           ? "bg-[var(--color-accent)] text-[var(--color-accent-foreground)] shadow-[var(--shadow-glow)]"
           : "text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-surface-elevated)]",

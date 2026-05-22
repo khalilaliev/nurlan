@@ -253,8 +253,37 @@ function MenuPanel({
           onClick={() => navigate("/submit")}
         />
 
+        {profile && (
+          <>
+            <Divider />
+
+            {/* 1. My Profile  2. Settings  (3. Admin if applicable) */}
+            <div className="space-y-0.5">
+              <MenuLink
+                icon={<User className="h-4 w-4" />}
+                label={t("menuMyProfile")}
+                onClick={() => navigate(`/user/${profile.username}`)}
+              />
+              <MenuLink
+                icon={<Settings className="h-4 w-4" />}
+                label={t("menuSettings")}
+                onClick={() => navigate("/account")}
+              />
+              {isAdmin && (
+                <MenuLink
+                  accent
+                  icon={<ShieldAlert className="h-4 w-4" />}
+                  label={t("menuAdmin")}
+                  onClick={() => navigate("/account/admin")}
+                />
+              )}
+            </div>
+          </>
+        )}
+
         <Divider />
 
+        {/* 3. Theme */}
         <SectionLabel icon={<Sun className="h-3 w-3" />}>
           {t("menuTheme")}
         </SectionLabel>
@@ -273,6 +302,7 @@ function MenuPanel({
           />
         </div>
 
+        {/* 4. Language */}
         <SectionLabel icon={<Globe className="h-3 w-3" />}>
           {t("menuLanguage")}
         </SectionLabel>
@@ -299,42 +329,23 @@ function MenuPanel({
 
         <Divider />
 
+        {/* 5. Log Out (or guest auth links) */}
         <div className="space-y-0.5">
           {profile ? (
-            <>
-              <MenuLink
-                icon={<User className="h-4 w-4" />}
-                label={t("menuMyProfile")}
-                onClick={() => navigate(`/user/${profile.username}`)}
-              />
-              <MenuLink
-                icon={<Settings className="h-4 w-4" />}
-                label={t("menuSettings")}
-                onClick={() => navigate("/account")}
-              />
-              {isAdmin && (
-                <MenuLink
-                  accent
-                  icon={<ShieldAlert className="h-4 w-4" />}
-                  label={t("menuAdmin")}
-                  onClick={() => navigate("/account/admin")}
-                />
-              )}
-              <form
-                action={async () => {
-                  onClose();
-                  await signOut();
-                }}
+            <form
+              action={async () => {
+                onClose();
+                await signOut();
+              }}
+            >
+              <button
+                type="submit"
+                className="cursor-pointer w-full flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius)] text-sm font-medium text-[var(--color-foreground-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-accent-soft)]/40 transition-colors"
               >
-                <button
-                  type="submit"
-                  className="cursor-pointer w-full flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius)] text-sm font-medium text-[var(--color-foreground-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-accent-soft)]/40 transition-colors"
-                >
-                  <LogOut className="h-4 w-4" />
-                  {t("menuLogout")}
-                </button>
-              </form>
-            </>
+                <LogOut className="h-4 w-4" />
+                {t("menuLogout")}
+              </button>
+            </form>
           ) : (
             <>
               <MenuLink

@@ -12,6 +12,7 @@ import { ReactionBar } from "@/components/reaction-bar";
 import { Comments } from "@/components/comments";
 import { MediaGallery } from "@/components/media-gallery";
 import { AdminStoryActions } from "@/components/admin-story-actions";
+import { recordStoryView } from "@/app/actions/views";
 import { estimateReadingMinutes, formatRelativeTime } from "@/lib/utils";
 import type {
   ReactionType,
@@ -127,6 +128,12 @@ export default async function StoryPage({
   if (!story) notFound();
   const s = story;
 
+  // Record this user's view. Idempotent per (story, user) — the DB has a
+  // composite primary key + a trigger that bumps stories.view_count on
+  // genuinely-new inserts. Repeat visits by the same user are silent
+  // no-ops, so the counter only goes up once per unique reader.
+  await recordStoryView(id);
+
   // story_feed nulls out author_id for anonymous stories. To know if the
   // viewer is the author (so we can show Edit), fetch the underlying row.
   let isAuthor = false;
@@ -204,6 +211,9 @@ export default async function StoryPage({
           </span>
           <span className="text-[var(--color-foreground-subtle)]">
             · {minutes} {t("story.minRead")}
+          </span>
+          <span className="text-[var(--color-foreground-subtle)]">
+            · 👁 {s.view_count.toLocaleString(locale)}
           </span>
         </div>
         <h2 className="text-2xl sm:text-4xl font-semibold tracking-tight leading-tight mb-3 gradient-text">
