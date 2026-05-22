@@ -43,8 +43,11 @@ export default async function ContactPage({
   const defaults = await getViewerDefaults();
 
   return (
-    <div className="relative mx-auto max-w-5xl px-4 sm:px-6 py-16 sm:py-20">
-      {/* Soft accent orb behind the title — a tiny visual hook. */}
+    <div className="relative mx-auto max-w-5xl px-4 sm:px-6 py-16 sm:py-20 overflow-hidden">
+      {/* Soft accent orb behind the title — a tiny visual hook.
+          The wrapper above has `overflow-hidden` so this orb (576px wide)
+          doesn't push the page beyond the viewport on phones — that was
+          the source of the horizontal swipe on mobile. */}
       <div
         aria-hidden
         className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 h-72 w-[36rem] rounded-full bg-[var(--color-accent)]/10 blur-3xl"
