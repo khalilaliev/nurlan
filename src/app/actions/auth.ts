@@ -60,7 +60,17 @@ export async function signUp(formData: FormData) {
     password,
     options: { emailRedirectTo: `${origin}/api/auth/callback` },
   });
-  if (error) return { error: "errorGeneric" as const };
+  if (error) {
+    // Server-side diagnostic only. The client still receives the
+    // uniform `errorGeneric` to avoid email enumeration via differing
+    // responses.
+    console.error("[signUp] supabase rejected:", {
+      message: error.message,
+      status: error.status,
+      code: error.code,
+    });
+    return { error: "errorGeneric" as const };
+  }
   return { ok: true as const };
 }
 
