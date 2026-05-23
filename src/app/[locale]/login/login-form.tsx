@@ -38,6 +38,14 @@ export function LoginForm() {
         autoComplete="current-password"
         minLength={6}
       />
+      <div className="flex justify-end -mt-1">
+        <Link
+          href="/forgot-password"
+          className="text-xs text-[var(--color-foreground-muted)] hover:text-[var(--color-accent)] transition-colors"
+        >
+          {t("forgotPassword")}
+        </Link>
+      </div>
       {error && <p className="text-sm text-[var(--color-accent)]">{error}</p>}
       <Button
         type="submit"

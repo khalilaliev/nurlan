@@ -25,17 +25,8 @@ import { usePathname, useRouter } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { signOut } from "@/app/actions/auth";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/lib/use-theme";
 
-type Theme = "light" | "dark";
-
-function getInitialTheme(): Theme {
-  if (typeof window === "undefined") return "dark";
-  const stored = window.localStorage.getItem("theme");
-  if (stored === "light" || stored === "dark") return stored;
-  return window.matchMedia("(prefers-color-scheme: light)").matches
-    ? "light"
-    : "dark";
-}
 
 export function MobileMenu({
   profile,
@@ -142,22 +133,11 @@ function MenuPanel({
   const router = useRouter();
   const pathname = usePathname();
   const [pending, startTransition] = useTransition();
-  const [theme, setTheme] = useState<Theme>("dark");
-  const [mounted, setMounted] = useState(false);
+  // Shared theme state via <html data-theme> observer — flipping here
+  // also updates the footer icon and the account-menu pills automatically.
+  const [theme, setTheme] = useTheme();
+  const mounted = theme !== null;
   const panelRef = useRef<HTMLDivElement>(null);
-
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
-    setMounted(true);
-    setTheme(getInitialTheme());
-  }, []);
-  /* eslint-enable react-hooks/set-state-in-effect */
-
-  useEffect(() => {
-    if (!mounted) return;
-    document.documentElement.dataset.theme = theme;
-    window.localStorage.setItem("theme", theme);
-  }, [theme, mounted]);
 
   // Close on outside click or Escape. We deliberately don't lock body
   // scroll — the menu is small and floats; the user should still be able

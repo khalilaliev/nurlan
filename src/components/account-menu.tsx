@@ -17,20 +17,11 @@ import gsap from "gsap";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/lib/use-theme";
 import { signOut } from "@/app/actions/auth";
 
-type Theme = "light" | "dark";
 const PANEL_WIDTH = 320;
 const GAP = 12;
-
-function getInitialTheme(): Theme {
-  if (typeof window === "undefined") return "dark";
-  const stored = window.localStorage.getItem("theme");
-  if (stored === "light" || stored === "dark") return stored;
-  return window.matchMedia("(prefers-color-scheme: light)").matches
-    ? "light"
-    : "dark";
-}
 
 export function AccountMenu({
   username,
@@ -48,8 +39,11 @@ export function AccountMenu({
   const router = useRouter();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [theme, setTheme] = useState<Theme>("dark");
-  const [mounted, setMounted] = useState(false);
+  // Shared theme state — same hook is used by GuestControls (footer) and
+  // MobileMenu, so a flip here updates the footer icon automatically via
+  // the MutationObserver on <html data-theme>.
+  const [theme, setTheme] = useTheme();
+  const mounted = theme !== null;
   const [pending, startTransition] = useTransition();
   const [coords, setCoords] = useState<{ top: number; right: number }>({
     top: 0,
@@ -57,19 +51,6 @@ export function AccountMenu({
   });
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
-    setTheme(getInitialTheme());
-    setMounted(true);
-  }, []);
-  /* eslint-enable react-hooks/set-state-in-effect */
-
-  useEffect(() => {
-    if (!mounted) return;
-    document.documentElement.dataset.theme = theme;
-    window.localStorage.setItem("theme", theme);
-  }, [theme, mounted]);
 
   const recalc = () => {
     if (!buttonRef.current) return;
