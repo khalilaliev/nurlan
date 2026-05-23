@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { detectMagic, fetchFirstBytes } from "@/lib/media/magic-bytes";
 import { kindForUrl } from "@/lib/media/constants";
+import { checkRateLimit, storyLimiter } from "@/lib/rate-limit";
 
 const MAX_MEDIA = 5;
 
@@ -92,6 +93,12 @@ export async function createStory(formData: FormData) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "errorAuth" as const };
+
+  // Rate-limit per-user (already authed, so user.id is always present).
+  // 3 stories/hour is generous for real authors and stops content-spam
+  // bots dead.
+  const rl = await checkRateLimit(storyLimiter, user.id);
+  if (!rl.success) return { error: "errorRateLimited" as const };
 
   const parsed = parseStoryFormData(formData, locale);
   if (!parsed.success) return { error: "errorGeneric" as const };

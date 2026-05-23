@@ -3,6 +3,12 @@
 import { z } from "zod";
 import { headers } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  checkRateLimit,
+  contactLimiter,
+  getClientIp,
+  newsletterLimiter,
+} from "@/lib/rate-limit";
 
 function getLocale(h: Headers): "en" | "ru" {
   const referer = h.get("referer") ?? "";
@@ -18,13 +24,20 @@ const NewsletterSchema = z.object({
 
 export async function subscribeNewsletter(
   formData: FormData,
-): Promise<{ ok: true } | { error: "invalid" | "db" }> {
+): Promise<{ ok: true } | { error: "invalid" | "db" | "errorRateLimited" }> {
+  // Per-IP throttle: stops scripts from filling the table with garbage
+  // emails or harvesting our table by upserting wordlists.
+  const headerList = await headers();
+  const ip = getClientIp(headerList);
+  const rl = await checkRateLimit(newsletterLimiter, ip);
+  if (!rl.success) return { error: "errorRateLimited" };
+
   const parsed = NewsletterSchema.safeParse({
     email: String(formData.get("email") ?? "").trim().toLowerCase(),
   });
   if (!parsed.success) return { error: "invalid" };
 
-  const locale = getLocale(await headers());
+  const locale = getLocale(headerList);
 
   try {
     const supabase = await createSupabaseServerClient();
@@ -64,7 +77,14 @@ const ContactSchema = z.object({
 
 export async function sendContactMessage(
   formData: FormData,
-): Promise<{ ok: true } | { error: "invalid" | "db" }> {
+): Promise<{ ok: true } | { error: "invalid" | "db" | "errorRateLimited" }> {
+  // 3 contact messages / IP / minute. Real users send one. Spammers
+  // and scripts get cut off quickly.
+  const headerList = await headers();
+  const ip = getClientIp(headerList);
+  const rl = await checkRateLimit(contactLimiter, ip);
+  if (!rl.success) return { error: "errorRateLimited" };
+
   const parsed = ContactSchema.safeParse({
     name: String(formData.get("name") ?? "").trim(),
     email: String(formData.get("email") ?? "").trim().toLowerCase(),
@@ -73,7 +93,7 @@ export async function sendContactMessage(
   });
   if (!parsed.success) return { error: "invalid" };
 
-  const locale = getLocale(await headers());
+  const locale = getLocale(headerList);
 
   try {
     const supabase = await createSupabaseServerClient();

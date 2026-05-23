@@ -2,7 +2,13 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  checkRateLimit,
+  commentLimiter,
+  getClientIp,
+} from "@/lib/rate-limit";
 
 const CommentSchema = z.object({
   story_id: z.string().uuid(),
@@ -16,6 +22,15 @@ export async function createComment(formData: FormData) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  // Rate-limit by user id when authed, IP otherwise. The action below
+  // rejects anon users, but we still want IP-keyed throttling so a
+  // burst of unauth attempts doesn't churn the DB before the auth
+  // check kicks in.
+  const ip = getClientIp(await headers());
+  const rl = await checkRateLimit(commentLimiter, user?.id ?? ip);
+  if (!rl.success) return { error: "errorRateLimited" as const };
+
   if (!user) return { error: "auth" as const };
 
   const parentRaw = formData.get("parent_id");
