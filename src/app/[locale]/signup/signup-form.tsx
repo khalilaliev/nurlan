@@ -15,7 +15,11 @@ import { signUp } from "@/app/actions/auth";
 export function SignupForm() {
   const t = useTranslations("auth");
   const [submitting, setSubmitting] = useState(false);
-  const [status, setStatus] = useState<"idle" | "ok" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "ok">("idle");
+  // Hold the discriminated error code from the server so we render the
+  // matching message (rate-limited / weak-password / generic) instead
+  // of a hardcoded "something went wrong".
+  const [errorKey, setErrorKey] = useState<string | null>(null);
 
   if (status === "ok") {
     return (
@@ -30,10 +34,16 @@ export function SignupForm() {
       <form
         action={async (fd) => {
           setSubmitting(true);
+          setErrorKey(null);
           const res = await signUp(fd);
           setSubmitting(false);
-          if (res && "error" in res) setStatus("error");
-          else setStatus("ok");
+          if (res && "error" in res) {
+            // Server Actions widen the return to include undefined in
+            // some Next config combos; coalesce defensively.
+            setErrorKey(res.error ?? "errorGeneric");
+          } else {
+            setStatus("ok");
+          }
         }}
         className="space-y-4"
       >
@@ -52,10 +62,8 @@ export function SignupForm() {
           autoComplete="new-password"
           minLength={6}
         />
-        {status === "error" && (
-          <p className="text-sm text-[var(--color-accent)]">
-            {t("errorGeneric")}
-          </p>
+        {errorKey && (
+          <p className="text-sm text-[var(--color-accent)]">{t(errorKey)}</p>
         )}
         <Button
           type="submit"

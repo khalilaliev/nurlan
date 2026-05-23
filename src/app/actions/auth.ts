@@ -60,7 +60,30 @@ export async function signUp(formData: FormData) {
     password,
     options: { emailRedirectTo: `${origin}/api/auth/callback` },
   });
-  if (error) return { error: "errorGeneric" as const };
+  if (error) {
+    // Log the real Supabase error to the server console so it's
+    // diagnosable. Never leak it to the client — `errorGeneric` keeps
+    // the response uniform and avoids email-enumeration via differing
+    // messages.
+    console.error("[signUp] supabase rejected:", {
+      message: error.message,
+      status: error.status,
+      code: error.code,
+    });
+    // Map known cases to specific user-visible codes so the UI can
+    // render the right hint. Anything else falls through to generic.
+    if (
+      error.status === 429 ||
+      error.code === "over_email_send_rate_limit" ||
+      error.code === "over_request_rate_limit"
+    ) {
+      return { error: "errorRateLimited" as const };
+    }
+    if (error.code === "weak_password") {
+      return { error: "errorShortPassword" as const };
+    }
+    return { error: "errorGeneric" as const };
+  }
   return { ok: true as const };
 }
 
