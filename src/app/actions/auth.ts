@@ -4,6 +4,11 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  authLimiter,
+  checkRateLimit,
+  getClientIp,
+} from "@/lib/rate-limit";
 
 function getLocaleFromHeaders(h: Headers): string {
   const referer = h.get("referer") ?? "";
@@ -12,6 +17,12 @@ function getLocaleFromHeaders(h: Headers): string {
 }
 
 export async function signIn(formData: FormData) {
+  // Rate-limit before any DB work — cheapest possible rejection path
+  // for password-spray / credential-stuffing scripts.
+  const ip = getClientIp(await headers());
+  const rl = await checkRateLimit(authLimiter, ip);
+  if (!rl.success) return { error: "errorRateLimited" as const };
+
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   if (!email || !password) {
@@ -26,6 +37,13 @@ export async function signIn(formData: FormData) {
 }
 
 export async function signUp(formData: FormData) {
+  // Rate-limit first. Each signup costs us a Supabase confirmation
+  // email, so unbounded volume is a real $$ risk on top of database
+  // pollution.
+  const ip = getClientIp(await headers());
+  const rl = await checkRateLimit(authLimiter, ip);
+  if (!rl.success) return { error: "errorRateLimited" as const };
+
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   if (!email || password.length < 6) {
@@ -59,12 +77,19 @@ export async function signOut() {
 // This prevents email enumeration: an attacker can't probe whether an
 // address is registered by watching for different responses.
 export async function requestPasswordReset(formData: FormData) {
+  // Rate-limit so an attacker can't email-bomb arbitrary addresses
+  // (Supabase has its own provider limits, but we shouldn't be the
+  // amplifier).
+  const headerList = await headers();
+  const ip = getClientIp(headerList);
+  const rl = await checkRateLimit(authLimiter, ip);
+  if (!rl.success) return { error: "errorRateLimited" as const };
+
   const email = String(formData.get("email") ?? "").trim();
   if (!email || !email.includes("@")) {
     return { error: "errorInvalidEmail" as const };
   }
   const supabase = await createSupabaseServerClient();
-  const headerList = await headers();
   const origin =
     headerList.get("origin") ??
     process.env.NEXT_PUBLIC_SITE_URL ??
