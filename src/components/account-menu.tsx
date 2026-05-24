@@ -255,7 +255,7 @@ export function AccountMenu({
                   <button
                     key={l}
                     type="button"
-                    disabled={pending}
+                    // disabled={pending}
                     onClick={() => switchLocale(l)}
                     className={cn(
                       "flex-1 px-3 py-1.5 rounded-[8px] text-xs uppercase font-semibold tracking-wide transition-colors flex items-center justify-center gap-1.5",

@@ -55,21 +55,47 @@ export async function signUp(formData: FormData) {
     headerList.get("origin") ??
     process.env.NEXT_PUBLIC_SITE_URL ??
     "http://localhost:3000";
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: { emailRedirectTo: `${origin}/api/auth/callback` },
   });
   if (error) {
-    // Server-side diagnostic only. The client still receives the
-    // uniform `errorGeneric` to avoid email enumeration via differing
-    // responses.
     console.error("[signUp] supabase rejected:", {
       message: error.message,
       status: error.status,
       code: error.code,
     });
     return { error: "errorGeneric" as const };
+  }
+
+  // Duplicate-email detection across Supabase configs.
+  //
+  // Supabase returns different response shapes depending on whether
+  // "Confirm email" is ON or OFF in the Auth dashboard:
+  //
+  //   confirm-email ON, duplicate email:
+  //     data.user        = { id, email, identities: [], ... }
+  //     data.session     = null
+  //   confirm-email OFF, duplicate email:
+  //     data.user        = null  (most versions)
+  //     data.session     = null
+  //   confirm-email OFF, new signup:
+  //     data.user        = { id, email, identities: [{...}] }
+  //     data.session     = { access_token, ... }
+  //   confirm-email ON, new signup:
+  //     data.user        = { id, email, identities: [{...}] }
+  //     data.session     = null
+  //
+  // The unambiguous "duplicate" signal across all four cases:
+  //   user is null  OR  user.identities is an empty array.
+  const isDuplicateEmail =
+    !data.user ||
+    (Array.isArray(data.user.identities) && data.user.identities.length === 0);
+
+  if (isDuplicateEmail) {
+    console.warn("[signUp] email already registered:", email);
+    return { error: "errorEmailTaken" as const };
   }
   return { ok: true as const };
 }

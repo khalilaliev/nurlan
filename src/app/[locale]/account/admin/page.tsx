@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isCurrentUserAdmin } from "@/lib/supabase/admin-check";
 import { AdminFilters } from "./admin-filters";
 import { AdminAnalytics } from "./admin-analytics";
+import { AdminTabs } from "./admin-tabs";
 import type { AdminStoryRowData } from "./admin-story-row";
 
 export const dynamic = "force-dynamic";
@@ -81,6 +82,7 @@ export default async function AdminPage({
         comments={commentsRes.count ?? 0}
       />
       <div>
+        <AdminTabs />
         <h2 className="text-lg font-semibold mb-1">{t("title")}</h2>
         <p className="text-sm text-[var(--color-foreground-muted)] mb-4">
           {t("subtitle")}

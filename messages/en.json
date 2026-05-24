@@ -123,6 +123,7 @@
     "forgotPassword": "Forgot password?",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
+    "errorEmailTaken": "This email is already registered. Try logging in instead.",
     "forgotTitle": "Reset your password",
     "forgotSubtitle": "Enter your email and we'll send you a link to set a new one.",
     "forgotSubmit": "Send reset link",
@@ -189,7 +190,28 @@
     "view": "View",
     "adminBadge": "Admin",
     "removedNotice": "Removed by moderator.",
-    "tabLabel": "Admin"
+    "tabLabel": "Admin",
+    "tabStories": "Stories",
+    "tabUsers": "Users",
+    "usersTitle": "Users",
+    "usersSubtitle": "Every account on the platform. Search and remove.",
+    "usersSearch": "Search by username or email",
+    "usersEmpty": "Nothing matches that search.",
+    "usersJoined": "Joined",
+    "usersStories": "stories",
+    "usersDelete": "Delete user",
+    "deleteUserTitle": "Delete this user?",
+    "deleteUserBody": "This permanently removes the account, all stories, comments, reactions, and uploaded media. Cannot be undone.",
+    "deleteUserConfirmLabel": "Type the username to confirm: {username}",
+    "deleteUserConfirmPlaceholder": "username",
+    "deleteUserCancel": "Cancel",
+    "deleteUserDelete": "Delete permanently",
+    "deleteUserDeleting": "Deleting...",
+    "errorSelfDelete": "You can't delete yourself.",
+    "errorUsernameMismatch": "Username doesn't match. Type it exactly.",
+    "errorNotFound": "User not found — already deleted?",
+    "errorForbidden": "You're not an admin.",
+    "errorDb": "Something went wrong. Try again."
   },
   "comments": {
     "empty": "Be the first to comment.",
@@ -269,40 +291,46 @@
     "lede": "Recent releases, design updates, and what we're working on next.",
     "items": [
       {
-        "date": "Soon",
-        "tag": "Coming",
-        "title": "Media attachments",
-        "body": "Upload images and videos straight into your stories. Drag-and-drop, multiple files, full preview before posting."
+        "date": "Today",
+        "tag": "Shipped",
+        "title": "Admin user moderation",
+        "body": "Admins can now permanently remove user accounts from /account/admin/users. Two-step confirmation: type the username to match before deletion. Cascades through every story, comment, reaction and upload that user touched."
       },
       {
         "date": "This week",
-        "tag": "Release",
-        "title": "Public profiles",
-        "body": "Visit any author at /user/their-handle to see everything they've published, their stats, and their writing voice in one place."
-      },
-      {
-        "date": "This week",
-        "tag": "Release",
-        "title": "Feed filters",
-        "body": "Sort the feed by New, Best, Top, or Trending — see what's hot this week instead of just the latest."
-      },
-      {
-        "date": "Last week",
         "tag": "Polish",
-        "title": "Light mode",
-        "body": "Toggle in the header. Same accent, totally different mood. Persists across sessions."
+        "title": "Show / hide on every password field",
+        "body": "Tap the eye in any password input to peek at what you typed; tap again to hide. Animated icon morph and a soft press feedback."
+      },
+      {
+        "date": "This week",
+        "tag": "Shipped",
+        "title": "Password reset",
+        "body": "Forgot password is now a real flow. Enter your email, click the link in your inbox, set a new one. Doesn't leak whether the address is registered."
       },
       {
         "date": "Last week",
-        "tag": "Release",
-        "title": "Account dashboard",
-        "body": "Manage your stories, reactions received, comments, and account settings — all in one place."
+        "tag": "Security",
+        "title": "Rate limiting + open-redirect fix",
+        "body": "Sign-in, signup, reset, comments, story posts and search are now throttled per IP and per user — a long way against credential stuffing and spam. Also: the OAuth callback's `next` parameter is now strictly validated so a phishing link can't bounce you off-site."
+      },
+      {
+        "date": "Last week",
+        "tag": "Shipped",
+        "title": "Edit your stories",
+        "body": "Posted something with a typo? Authors can now edit their own stories — title, body, category, tags, media. Edits don't reset the published date."
       },
       {
         "date": "Two weeks ago",
-        "tag": "Release",
-        "title": "Bilingual launch",
-        "body": "Full English and Russian support across the site. Switch instantly from the header."
+        "tag": "Shipped",
+        "title": "Story views — counted once per reader",
+        "body": "Stories now track unique views. One per reader, per story — refresh doesn't pad the number. Shows on every feed card."
+      },
+      {
+        "date": "Coming",
+        "tag": "Soon",
+        "title": "AI signals on every story",
+        "body": "Every new story will get a small AI-generated card: emotion, drama, viral potential, and a one-line summary that replaces the boilerplate preview. Schema's already there; wiring is up next."
       }
     ]
   },
