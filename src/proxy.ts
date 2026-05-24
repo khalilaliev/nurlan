@@ -6,7 +6,7 @@ import { apiLimiter, checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 const intl = createIntlMiddleware(routing);
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // API routes: coarse per-IP rate limit, then short-circuit. We never
