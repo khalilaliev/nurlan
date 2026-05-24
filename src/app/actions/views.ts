@@ -11,20 +11,27 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 // Anonymous viewers (no auth.uid()) don't count — by design. If you ever
 // want them to count, you'd swap to an IP/cookie-based row with weaker
 // uniqueness guarantees and a much messier abuse story.
+// Calls the SECURITY DEFINER RPC `record_story_view`, which inserts one
+// (story_id, viewer_id) row idempotently. We bypass direct table writes
+// because PostgREST's upsert (INSERT ... ON CONFLICT DO NOTHING +
+// return=representation) interacts badly with our RLS setup for
+// non-admin viewers — the conflict-resolution path surfaces as a
+// WITH CHECK violation even when the check would pass. The RPC enforces
+// `viewer_id = auth.uid()` internally, so RLS-bypass is safe here.
 export async function recordStoryView(storyId: string): Promise<void> {
   try {
     const supabase = await createSupabaseServerClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
-    await supabase
-      .from("story_views")
-      .upsert(
-        { story_id: storyId, viewer_id: user.id },
-        { onConflict: "story_id,viewer_id", ignoreDuplicates: true },
-      );
-  } catch {
-    // Don't surface — a view count is a nice-to-have, not load-bearing.
+    const { error } = await supabase.rpc("record_story_view", {
+      p_story_id: storyId,
+    });
+    if (error) {
+      console.warn("[recordStoryView] rpc failed:", {
+        storyId,
+        message: error.message,
+        code: error.code,
+      });
+    }
+  } catch (e) {
+    console.error("[recordStoryView] threw:", e);
   }
 }

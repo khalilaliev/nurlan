@@ -92,20 +92,39 @@ export async function createStory(formData: FormData) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "errorAuth" as const };
+  if (!user) {
+    console.warn("[createStory] no user (unauthenticated)");
+    return { error: "errorAuth" as const };
+  }
 
-  // Rate-limit per-user (already authed, so user.id is always present).
-  // 3 stories/hour is generous for real authors and stops content-spam
-  // bots dead.
   const rl = await checkRateLimit(storyLimiter, user.id);
-  if (!rl.success) return { error: "errorRateLimited" as const };
+  if (!rl.success) {
+    console.warn("[createStory] rate-limited:", user.id);
+    return { error: "errorRateLimited" as const };
+  }
 
   const parsed = parseStoryFormData(formData, locale);
-  if (!parsed.success) return { error: "errorGeneric" as const };
+  if (!parsed.success) {
+    console.warn("[createStory] validation failed:", {
+      issues: parsed.error.issues,
+      raw: {
+        title_len: String(formData.get("title") ?? "").length,
+        body_len: String(formData.get("body") ?? "").length,
+        category_slug: formData.get("category_slug"),
+        is_anonymous: formData.get("is_anonymous"),
+        tags: formData.get("tags"),
+        media_urls_count: formData.getAll("media_urls").length,
+      },
+    });
+    return { error: "errorGeneric" as const };
+  }
 
   if (parsed.data.media_urls.length > 0) {
     const ok = await validateMediaSignatures(parsed.data.media_urls);
-    if (!ok) return { error: "errorBadMedia" as const };
+    if (!ok) {
+      console.warn("[createStory] media validation failed");
+      return { error: "errorBadMedia" as const };
+    }
   }
 
   const { data, error } = await supabase
@@ -123,7 +142,16 @@ export async function createStory(formData: FormData) {
     .select("id")
     .single();
 
-  if (error || !data?.id) return { error: "errorGeneric" as const };
+  if (error || !data?.id) {
+    console.error("[createStory] insert failed:", {
+      message: error?.message,
+      code: error?.code,
+      details: error?.details,
+      hint: error?.hint,
+      author_id: user.id,
+    });
+    return { error: "errorGeneric" as const };
+  }
 
   revalidatePath(`/${locale}`);
   const newId: string = data.id;

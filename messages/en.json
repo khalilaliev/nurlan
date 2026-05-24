@@ -74,6 +74,7 @@
     "fieldTitle": "Title",
     "fieldTitlePlaceholder": "A short, punchy headline",
     "fieldCategory": "Category",
+    "fieldCategoryRequired": "Please choose a category.",
     "fieldBody": "Your story",
     "fieldBodyPlaceholder": "Take your time. The good details matter.",
     "fieldTags": "Tags",

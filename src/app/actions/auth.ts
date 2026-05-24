@@ -69,32 +69,35 @@ export async function signUp(formData: FormData) {
     return { error: "errorGeneric" as const };
   }
 
-  // Duplicate-email detection across Supabase configs.
+  // Duplicate-email detection.
   //
-  // Supabase returns different response shapes depending on whether
-  // "Confirm email" is ON or OFF in the Auth dashboard:
+  // The clean signal is `data.user.created_at`. For a fresh signup
+  // Supabase populates this with NOW; for a duplicate, it returns the
+  // original user row with its ORIGINAL created_at (seconds, minutes,
+  // or days ago). Comparing against the wall clock with a 5-second
+  // grace window for request latency cleanly distinguishes the two
+  // cases regardless of the dashboard's "Confirm email" setting and
+  // regardless of whether auth.identities is populated correctly.
   //
-  //   confirm-email ON, duplicate email:
-  //     data.user        = { id, email, identities: [], ... }
-  //     data.session     = null
-  //   confirm-email OFF, duplicate email:
-  //     data.user        = null  (most versions)
-  //     data.session     = null
-  //   confirm-email OFF, new signup:
-  //     data.user        = { id, email, identities: [{...}] }
-  //     data.session     = { access_token, ... }
-  //   confirm-email ON, new signup:
-  //     data.user        = { id, email, identities: [{...}] }
-  //     data.session     = null
+  // Why not check identities length: in some DB states (e.g. after a
+  // partial schema reset) the auth.identities table doesn't get a row
+  // for fresh signups, so identities=[] is ambiguous between "new"
+  // and "duplicate". created_at age is unambiguous.
   //
-  // The unambiguous "duplicate" signal across all four cases:
-  //   user is null  OR  user.identities is an empty array.
-  const isDuplicateEmail =
-    !data.user ||
-    (Array.isArray(data.user.identities) && data.user.identities.length === 0);
-
-  if (isDuplicateEmail) {
-    console.warn("[signUp] email already registered:", email);
+  // Why not check data.user.identities at all: same reason — unreliable.
+  //
+  // Edge case: if data.user is null (confirm-email OFF + duplicate on
+  // older Supabase versions), treat as duplicate.
+  const FRESH_THRESHOLD_MS = 5_000;
+  if (!data.user) {
+    console.warn("[signUp] email already registered (null user):", email);
+    return { error: "errorEmailTaken" as const };
+  }
+  const ageMs = Date.now() - new Date(data.user.created_at).getTime();
+  if (ageMs > FRESH_THRESHOLD_MS) {
+    console.warn("[signUp] email already registered:", email, {
+      user_age_ms: ageMs,
+    });
     return { error: "errorEmailTaken" as const };
   }
   return { ok: true as const };

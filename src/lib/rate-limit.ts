@@ -30,14 +30,14 @@ if (!url || !token) {
   if (process.env.NODE_ENV === "production") {
     throw new Error(
       "[rate-limit] UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN " +
-        "are required in production. Set them on the Vercel project.",
+      "are required in production. Set them on the Vercel project.",
     );
   }
   // Dev: log once at module load, then silently bypass.
   console.warn(
     "[rate-limit] Upstash credentials not set — rate limiting is " +
-      "disabled in this environment. Add UPSTASH_REDIS_REST_URL and " +
-      "UPSTASH_REDIS_REST_TOKEN to .env.local to enable.",
+    "disabled in this environment. Add UPSTASH_REDIS_REST_URL and " +
+    "UPSTASH_REDIS_REST_TOKEN to .env.local to enable.",
   );
 }
 
@@ -64,7 +64,7 @@ export const authLimiter = makeLimiter("auth", "1 m", 10);
 export const contactLimiter = makeLimiter("contact", "1 m", 3);
 export const newsletterLimiter = makeLimiter("newsletter", "1 m", 3);
 export const commentLimiter = makeLimiter("comment", "1 m", 5);
-export const storyLimiter = makeLimiter("story", "1 h", 3);
+export const storyLimiter = makeLimiter("story", "1 h", 10);
 export const searchLimiter = makeLimiter("search", "1 m", 30);
 // Coarse middleware fallback. Covers any /api/** request as a defense-
 // in-depth layer on top of per-action limits.

@@ -74,6 +74,7 @@
     "fieldTitle": "Заголовок",
     "fieldTitlePlaceholder": "Короткий, цепляющий",
     "fieldCategory": "Категория",
+    "fieldCategoryRequired": "Пожалуйста, выберите категорию.",
     "fieldBody": "Твоя история",
     "fieldBodyPlaceholder": "Не торопись. Детали важны.",
     "fieldTags": "Теги",

@@ -145,6 +145,13 @@ export function SubmitForm({
   };
 
   const submit = async () => {
+    // Radix Select's `required` prop is a no-op for HTML form validation
+    // (it has no underlying native input). Guard explicitly so we don't
+    // round-trip to the server only to fail Zod validation.
+    if (!category) {
+      setError(t("fieldCategoryRequired"));
+      return;
+    }
     setSubmitting(true);
     setError(null);
     const res = await createStory(buildFormData());

@@ -34,34 +34,6 @@ export default async function AdminUsersPage({
     admin.from("stories").select("author_id"),
   ]);
 
-  // ─── DIAGNOSTIC LOGGING (temporary) ──────────────────────────────────
-  // Until we confirm the admin users list works against the current
-  // database state, log the shape of every response so silent failures
-  // (Supabase's classic { data: null, error: {...}, status: 200 } pattern)
-  // are visible in the dev terminal.
-  console.log("[admin/users] response shapes:", {
-    authUsers: {
-      count: authUsersRes.data?.users?.length ?? null,
-      hasError: Boolean(authUsersRes.error),
-      errorMessage: authUsersRes.error?.message ?? null,
-    },
-    profiles: {
-      count: profilesRes.data?.length ?? null,
-      hasError: Boolean(profilesRes.error),
-      errorMessage: profilesRes.error?.message ?? null,
-      status: profilesRes.status,
-      statusText: profilesRes.statusText,
-    },
-    stories: {
-      count: storiesRes.data?.length ?? null,
-      hasError: Boolean(storiesRes.error),
-      errorMessage: storiesRes.error?.message ?? null,
-      status: storiesRes.status,
-      statusText: storiesRes.statusText,
-    },
-  });
-  // ─────────────────────────────────────────────────────────────────────
-
   const emailById = new Map<string, string>();
   for (const u of authUsersRes.data?.users ?? []) {
     if (u.email) emailById.set(u.id, u.email);
