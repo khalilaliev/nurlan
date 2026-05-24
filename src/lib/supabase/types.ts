@@ -265,7 +265,12 @@ export type Database = {
         Relationships: [];
       };
     };
-    Functions: Record<string, never>;
+    Functions: {
+      record_story_view: {
+        Args: { p_story_id: string };
+        Returns: undefined;
+      };
+    };
     Enums: {
       reaction_type: ReactionType;
       story_status: StoryStatus;
