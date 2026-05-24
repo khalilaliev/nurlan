@@ -69,37 +69,22 @@ export async function signUp(formData: FormData) {
     return { error: "errorGeneric" as const };
   }
 
-  // Duplicate-email detection.
+  // Intentionally NO duplicate-email detection.
   //
-  // The clean signal is `data.user.created_at`. For a fresh signup
-  // Supabase populates this with NOW; for a duplicate, it returns the
-  // original user row with its ORIGINAL created_at (seconds, minutes,
-  // or days ago). Comparing against the wall clock with a 5-second
-  // grace window for request latency cleanly distinguishes the two
-  // cases regardless of the dashboard's "Confirm email" setting and
-  // regardless of whether auth.identities is populated correctly.
+  // Supabase has email-enumeration protection always-on in this project
+  // (no dashboard toggle to disable). It returns an identical
+  // `{ user: null, session: null }` shape for every signup outcome:
+  //   - fresh signup       → confirmation email sent
+  //   - duplicate unconfirmed → confirmation re-sent
+  //   - duplicate confirmed   → "someone tried to sign up with your
+  //                              email" notification sent
   //
-  // Why not check identities length: in some DB states (e.g. after a
-  // partial schema reset) the auth.identities table doesn't get a row
-  // for fresh signups, so identities=[] is ambiguous between "new"
-  // and "duplicate". created_at age is unambiguous.
-  //
-  // Why not check data.user.identities at all: same reason — unreliable.
-  //
-  // Edge case: if data.user is null (confirm-email OFF + duplicate on
-  // older Supabase versions), treat as duplicate.
-  const FRESH_THRESHOLD_MS = 5_000;
-  if (!data.user) {
-    console.warn("[signUp] email already registered (null user):", email);
-    return { error: "errorEmailTaken" as const };
-  }
-  const ageMs = Date.now() - new Date(data.user.created_at).getTime();
-  if (ageMs > FRESH_THRESHOLD_MS) {
-    console.warn("[signUp] email already registered:", email, {
-      user_age_ms: ageMs,
-    });
-    return { error: "errorEmailTaken" as const };
-  }
+  // Since the client can't distinguish these cases, we don't try.
+  // We always return success and let the UI show a neutral message
+  // covering all three outcomes. Anything else would either leak
+  // registration status (security regression) or misreport state
+  // (UX bug). See: prior attempts in git history burned ~3 sessions
+  // before we arrived at this.
   return { ok: true as const };
 }
 
