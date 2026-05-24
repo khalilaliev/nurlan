@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Montserrat, JetBrains_Mono } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
 import "./globals.css";
@@ -22,6 +22,27 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   ),
+};
+
+// Tints the iOS Safari status bar + bottom toolbar (and Android Chrome
+// address bar) to match the page background. Without this, those areas
+// fall back to white in both light and dark themes, producing the
+// "white strip above the dark page" effect.
+//
+// The two colors come from globals.css:
+//   --color-background: #faf9f7   (light)
+//   --color-background: #07070a   (dark)
+//
+// Caveat: prefers-color-scheme follows the OS, not localStorage. If a
+// user OS-light but manually toggled the app to dark via the in-app
+// theme switch, the chrome will still be light until they reload (or
+// we add a tiny client-side updater). Good-enough fix for the
+// majority case.
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#faf9f7" },
+    { media: "(prefers-color-scheme: dark)", color: "#07070a" },
+  ],
 };
 
 export default function RootLayout({
