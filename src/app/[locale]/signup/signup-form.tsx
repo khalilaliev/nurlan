@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Button } from "@/components/ui/button";
 import {
   TwitchButton,
@@ -44,9 +45,8 @@ export function SignupForm() {
           required
           autoComplete="email"
         />
-        <Input
+        <PasswordInput
           name="password"
-          type="password"
           placeholder={t("password")}
           required
           autoComplete="new-password"
@@ -76,7 +76,7 @@ export function SignupForm() {
       </div>
 
       <p className="text-center text-xs text-[var(--color-foreground-muted)] pt-2">
-        <Link href="/login" className="hover:text-[var(--color-foreground)]">
+        <Link href="/login" className="hover:text-[var(--color-accent)] transition-colors">
           {t("switchToLogin")}
         </Link>
       </p>

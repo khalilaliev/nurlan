@@ -25,16 +25,35 @@ export default async function AccountOverviewPage({
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data: profile } = await supabase
+  const profileRes = await supabase
     .from("profiles")
     .select("username, display_name, bio, avatar_url, created_at")
     .eq("id", user.id)
     .maybeSingle();
 
-  const { data: myStories } = await supabase
+  const myStoriesRes = await supabase
     .from("stories")
     .select("id, view_count")
     .eq("author_id", user.id);
+
+  // ─── DIAGNOSTIC LOGGING (temporary) ──────────────────────────────────
+  console.log("[account/profile] response", {
+    userId: user.id,
+    hasData: profileRes.data !== null,
+    error: profileRes.error,
+    status: profileRes.status,
+    statusText: profileRes.statusText,
+  });
+  console.log("[account/stories] response", {
+    rowCount: myStoriesRes.data?.length ?? null,
+    error: myStoriesRes.error,
+    status: myStoriesRes.status,
+    statusText: myStoriesRes.statusText,
+  });
+  // ─────────────────────────────────────────────────────────────────────
+
+  const profile = profileRes.data;
+  const myStories = myStoriesRes.data;
 
   const storyIds = (myStories ?? []).map((s) => s.id);
   const totalViews = (myStories ?? []).reduce((sum, s) => sum + (s.view_count ?? 0), 0);

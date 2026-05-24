@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Button } from "@/components/ui/button";
 import { updatePassword } from "@/app/actions/auth";
 
@@ -35,9 +35,8 @@ export function ResetPasswordForm() {
       }}
       className="space-y-4"
     >
-      <Input
+      <PasswordInput
         name="password"
-        type="password"
         placeholder={t("newPassword")}
         required
         autoComplete="new-password"
@@ -46,8 +45,7 @@ export function ResetPasswordForm() {
         onChange={(e) => setPassword(e.target.value)}
         autoFocus
       />
-      <Input
-        type="password"
+      <PasswordInput
         placeholder={t("confirmPassword")}
         required
         autoComplete="new-password"

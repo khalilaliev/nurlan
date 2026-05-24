@@ -121,6 +121,8 @@
     "switchToSignup": "Нет аккаунта? Зарегистрироваться",
     "switchToLogin": "Уже есть аккаунт? Войти",
     "forgotPassword": "Забыл пароль?",
+    "showPassword": "Показать пароль",
+    "hidePassword": "Скрыть пароль",
     "forgotTitle": "Сброс пароля",
     "forgotSubtitle": "Введи email — пришлём ссылку, чтобы задать новый.",
     "forgotSubmit": "Отправить ссылку",

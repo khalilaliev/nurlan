@@ -40,6 +40,22 @@ export default async function SubmitPage({
       .maybeSingle(),
   ]);
 
+  // ─── DIAGNOSTIC LOGGING (temporary) ──────────────────────────────────
+  console.log("[submit/categories] response", {
+    rowCount: categoriesRes.data?.length ?? null,
+    error: categoriesRes.error,
+    status: categoriesRes.status,
+    statusText: categoriesRes.statusText,
+  });
+  console.log("[submit/profile] response", {
+    userId: user.id,
+    hasData: profileRes.data !== null,
+    error: profileRes.error,
+    status: profileRes.status,
+    statusText: profileRes.statusText,
+  });
+  // ─────────────────────────────────────────────────────────────────────
+
   const categories = categoriesRes.data;
   const rulesAccepted = Boolean(profileRes.data?.rules_accepted_at);
 

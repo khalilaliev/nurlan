@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { AvatarUploader } from "@/components/avatar-uploader";
@@ -273,8 +274,7 @@ function PasswordSection() {
       >
         <div className="space-y-1.5">
           <Label>{t("newPassword")}</Label>
-          <Input
-            type="password"
+          <PasswordInput
             value={pw}
             onChange={(e) => setPw(e.target.value)}
             required
@@ -284,8 +284,7 @@ function PasswordSection() {
         </div>
         <div className="space-y-1.5">
           <Label>{t("confirmPassword")}</Label>
-          <Input
-            type="password"
+          <PasswordInput
             value={pw2}
             onChange={(e) => setPw2(e.target.value)}
             required

@@ -121,6 +121,8 @@
     "switchToSignup": "Don't have an account? Sign up",
     "switchToLogin": "Already have an account? Log in",
     "forgotPassword": "Forgot password?",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "forgotTitle": "Reset your password",
     "forgotSubtitle": "Enter your email and we'll send you a link to set a new one.",
     "forgotSubmit": "Send reset link",
