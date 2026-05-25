@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/guard";
@@ -9,8 +10,44 @@ import { FeedFilters, type FeedSort } from "@/components/feed-filters";
 import { Stagger, FadeIn } from "@/components/animated";
 import { AnimatedHeadline } from "@/components/animated-headline";
 import type { StoryFeedRow } from "@/lib/supabase/types";
+import {
+  DEFAULT_LOCALE,
+  buildAlternates,
+  isLocale,
+  ogLocale,
+  type Locale,
+} from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
+
+// Home is the one page that should NOT have the "%s · Nurlan" template
+// applied — its title IS the brand line. We use `title.absolute` to opt
+// out. Description is short and keyword-rich; the body of the page is
+// the real ranking signal.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale: raw } = await params;
+  const locale: Locale = isLocale(raw) ? raw : DEFAULT_LOCALE;
+  const t = await getTranslations({ locale, namespace: "seo" });
+  const title = t("homeTitle");
+  const description = t("homeDescription");
+  return {
+    title: { absolute: title },
+    description,
+    alternates: buildAlternates(locale, ""),
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      locale: ogLocale(locale),
+      url: buildAlternates(locale, "").canonical as string,
+    },
+    twitter: { title, description },
+  };
+}
 
 function parseSort(value: string | undefined): FeedSort {
   if (value === "best" || value === "top" || value === "trending") return value;

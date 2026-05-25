@@ -1,10 +1,33 @@
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Send, Mail, ArrowUpRight } from "lucide-react";
 import { TwitchIcon, InstagramIcon } from "@/components/brand-icons";
 import { Card } from "@/components/ui/card";
 import { FadeIn } from "@/components/animated";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  DEFAULT_LOCALE,
+  isLocale,
+  staticPageMetadata,
+  type Locale,
+} from "@/lib/seo";
 import { ContactForm } from "./contact-form";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale: raw } = await params;
+  const locale: Locale = isLocale(raw) ? raw : DEFAULT_LOCALE;
+  const t = await getTranslations({ locale, namespace: "seo" });
+  return staticPageMetadata({
+    locale,
+    title: t("contactTitle"),
+    description: t("contactDescription"),
+    path: "/contact",
+  });
+}
 
 async function getViewerDefaults(): Promise<{
   name: string;

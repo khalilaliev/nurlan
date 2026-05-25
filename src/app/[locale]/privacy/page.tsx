@@ -1,8 +1,29 @@
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Card } from "@/components/ui/card";
 import { FadeIn, Stagger } from "@/components/animated";
+import {
+  DEFAULT_LOCALE,
+  isLocale,
+  staticPageMetadata,
+  type Locale,
+} from "@/lib/seo";
 
-export const metadata = { title: "Privacy Policy" };
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale: raw } = await params;
+  const locale: Locale = isLocale(raw) ? raw : DEFAULT_LOCALE;
+  const t = await getTranslations({ locale, namespace: "seo" });
+  return staticPageMetadata({
+    locale,
+    title: t("privacyTitle"),
+    description: t("privacyDescription"),
+    path: "/privacy",
+  });
+}
 
 type Section = { title: string; body: string };
 

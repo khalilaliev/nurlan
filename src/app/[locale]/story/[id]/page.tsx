@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { Pencil } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
@@ -14,10 +15,103 @@ import { MediaGallery } from "@/components/media-gallery";
 import { AdminStoryActions } from "@/components/admin-story-actions";
 import { recordStoryView } from "@/app/actions/views";
 import { estimateReadingMinutes, formatRelativeTime } from "@/lib/utils";
+import { kindForUrl } from "@/lib/media/constants";
+import {
+  DEFAULT_LOCALE,
+  absoluteUrl,
+  buildAlternates,
+  isLocale,
+  metaDescription,
+  ogLocale,
+  type Locale,
+} from "@/lib/seo";
 import type {
   ReactionType,
   StoryFeedRow,
 } from "@/lib/supabase/types";
+
+// Metadata for a single story.
+//
+// Fetches via `story_feed` with the anonymous server client (no user
+// JWT in the metadata generation path). RLS on `stories` only exposes
+// rows with status='published' to anon, so removed/draft/flagged
+// stories never get crawled even if their URL is guessed.
+//
+// Caveats:
+//   - We deliberately include og:image only when the story has a real
+//     image (not a video). Section 9 will set up a dynamic fallback
+//     image for image-less stories.
+//   - For anonymous stories we don't emit article:author — the whole
+//     point of anonymity is not to expose the author in metadata.
+//   - If the story doesn't exist or isn't public, we return defaults
+//     plus a noindex hint so the URL doesn't get indexed even if
+//     someone links to a bad ID.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; id: string }>;
+}): Promise<Metadata> {
+  const { locale: raw, id } = await params;
+  const locale: Locale = isLocale(raw) ? raw : DEFAULT_LOCALE;
+  const t = await getTranslations({ locale, namespace: "seo" });
+
+  if (!isSupabaseConfigured()) {
+    return { robots: { index: false, follow: false } };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data: story } = await supabase
+    .from("story_feed")
+    .select(
+      "id, title, body, status, is_anonymous, author_username, media_urls, created_at",
+    )
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!story || story.status !== "published") {
+    return {
+      title: t("storyDefaultDescription"),
+      robots: { index: false, follow: false },
+      alternates: buildAlternates(locale, `/story/${id}`),
+    };
+  }
+
+  const description = metaDescription(
+    story.body?.replace(/\s+/g, " ").trim() || t("storyDefaultDescription"),
+  );
+
+  const firstImage = (story.media_urls ?? []).find(
+    (u: string) => kindForUrl(u) === "image",
+  );
+
+  const alternates = buildAlternates(locale, `/story/${id}`);
+  const url = alternates.canonical as string;
+
+  return {
+    title: story.title,
+    description,
+    alternates,
+    openGraph: {
+      title: story.title,
+      description,
+      type: "article",
+      locale: ogLocale(locale),
+      url,
+      publishedTime: story.created_at,
+      authors:
+        story.is_anonymous || !story.author_username
+          ? undefined
+          : [absoluteUrl(locale, `/user/${story.author_username}`)],
+      images: firstImage ? [{ url: firstImage }] : undefined,
+    },
+    twitter: {
+      card: firstImage ? "summary_large_image" : "summary",
+      title: story.title,
+      description,
+      images: firstImage ? [firstImage] : undefined,
+    },
+  };
+}
 
 type CommentNode = {
   id: string;

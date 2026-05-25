@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -5,6 +6,14 @@ import { isSupabaseConfigured } from "@/lib/supabase/guard";
 import { isCurrentUserAdmin } from "@/lib/supabase/admin-check";
 import { SetupNotice } from "@/components/setup-notice";
 import { AccountTabs } from "@/components/account-tabs";
+
+// Applies to every page nested under /account/* — overview, settings,
+// stories, activity, admin, admin/users. None of these should be
+// indexed: they're either personal data, admin tooling, or both.
+// Layout-level metadata cascades unless a child page overrides it.
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function AccountLayout({
   children,

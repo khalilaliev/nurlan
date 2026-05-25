@@ -1,11 +1,32 @@
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { FadeIn, Stagger } from "@/components/animated";
 import { Heart, Volume2, EyeOff } from "lucide-react";
+import {
+  DEFAULT_LOCALE,
+  isLocale,
+  staticPageMetadata,
+  type Locale,
+} from "@/lib/seo";
 
-export const metadata = { title: "About" };
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale: raw } = await params;
+  const locale: Locale = isLocale(raw) ? raw : DEFAULT_LOCALE;
+  const t = await getTranslations({ locale, namespace: "seo" });
+  return staticPageMetadata({
+    locale,
+    title: t("aboutTitle"),
+    description: t("aboutDescription"),
+    path: "/about",
+  });
+}
 
 export default async function AboutPage({
   params,

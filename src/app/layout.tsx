@@ -1,6 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import { Montserrat, JetBrains_Mono } from "next/font/google";
+import { getLocale, getTranslations } from "next-intl/server";
 import NextTopLoader from "nextjs-toploader";
+import {
+  DEFAULT_LOCALE,
+  SITE_NAME,
+  SITE_URL,
+  isLocale,
+  ogLocale,
+  type Locale,
+} from "@/lib/seo";
 import "./globals.css";
 
 const montserrat = Montserrat({
@@ -15,14 +24,48 @@ const mono = JetBrains_Mono({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: { default: "Nurlan — Stories that hit", template: "%s · Nurlan" },
-  description:
-    "A storytelling social network for the most interesting human experiences online.",
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
-  ),
-};
+// Resolve the current locale safely. `getLocale()` works for any route
+// passed through next-intl middleware. For routes outside that scope
+// (theoretically none in this app — middleware matches everything but
+// _next and static files) we fall back to the default.
+async function resolveLocale(): Promise<Locale> {
+  const raw = await getLocale();
+  return isLocale(raw) ? raw : DEFAULT_LOCALE;
+}
+
+// Site-wide metadata. Per-page metadata in sub-routes overrides
+// title/description; the OpenGraph and Twitter defaults below cascade
+// down unless explicitly replaced.
+//
+// Verification meta tags only render when their env vars are set,
+// which is how Next.js's `verification` field works — passing
+// undefined is a no-op.
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await resolveLocale();
+  const t = await getTranslations({ locale, namespace: "seo" });
+
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: {
+      default: t("defaultTitle"),
+      template: `%s · ${SITE_NAME}`,
+    },
+    description: t("defaultDescription"),
+    applicationName: SITE_NAME,
+    openGraph: {
+      siteName: SITE_NAME,
+      locale: ogLocale(locale),
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+    },
+    verification: {
+      google: process.env.GOOGLE_SITE_VERIFICATION,
+      yandex: process.env.YANDEX_VERIFICATION,
+    },
+  };
+}
 
 // Tints the iOS Safari status bar + bottom toolbar (and Android Chrome
 // address bar) to match the page background. Without this, those areas
@@ -45,15 +88,17 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const locale = await resolveLocale();
   const themeScript = `(function(){try{var t=localStorage.getItem('theme');if(!t){t=window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';}document.documentElement.dataset.theme=t;}catch(e){}})();`;
 
   return (
     <html
+      lang={locale}
       suppressHydrationWarning
       className={`${montserrat.variable} ${mono.variable} h-full`}
     >

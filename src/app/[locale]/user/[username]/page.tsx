@@ -18,41 +18,92 @@ import {
 } from "@/components/profile-tabs";
 import { formatRelativeTime } from "@/lib/utils";
 import { FileText, Heart, MessageSquare, Eye } from "lucide-react";
+import {
+  DEFAULT_LOCALE,
+  buildAlternates,
+  isLocale,
+  ogLocale,
+  type Locale,
+} from "@/lib/seo";
 import type { StoryFeedRow } from "@/lib/supabase/types";
 
 export const dynamic = "force-dynamic";
 
+// Profile metadata.
+//
+// Behaviour:
+//   - Profile not found → defaults + noindex (don't index 404-equivalent URLs)
+//   - Profile exists but is private → render a generic title with
+//     noindex/nofollow so crawlers don't waste budget on a locked page
+//   - Profile public → full title (templated), description (bio or
+//     fallback), avatar as og:image, canonical + hreflang
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ locale: string; username: string }>;
 }): Promise<Metadata> {
-  const { locale, username } = await params;
-  const t = await getTranslations({ locale, namespace: "profile" });
+  const { locale: raw, username } = await params;
+  const locale: Locale = isLocale(raw) ? raw : DEFAULT_LOCALE;
+  const profileT = await getTranslations({ locale, namespace: "profile" });
+  const seoT = await getTranslations({ locale, namespace: "seo" });
+
+  const alternates = buildAlternates(locale, `/user/${username}`);
+  const url = alternates.canonical as string;
 
   if (!isSupabaseConfigured()) {
-    return { title: `@${username}` };
+    return {
+      title: `@${username}`,
+      alternates,
+      robots: { index: false, follow: false },
+    };
   }
 
   const supabase = await createSupabaseServerClient();
   const { data: profile } = await supabase
     .from("profiles")
-    .select("username, display_name, bio")
+    .select("username, display_name, bio, avatar_url, is_profile_public")
     .eq("username", username.toLowerCase())
     .maybeSingle();
 
-  if (!profile) return { title: `@${username}` };
+  if (!profile) {
+    return {
+      title: `@${username}`,
+      alternates,
+      robots: { index: false, follow: false },
+    };
+  }
 
-  const title = t("title", { username: profile.username });
+  if (!profile.is_profile_public) {
+    return {
+      title: profileT("title", { username: profile.username }),
+      alternates,
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const title = profileT("title", { username: profile.username });
   const description =
     profile.bio?.trim() ||
-    t("description", { username: profile.username });
+    seoT("profileDefaultDescription", { username: profile.username });
 
   return {
     title,
     description,
-    openGraph: { title, description, type: "profile" },
-    twitter: { title, description, card: "summary" },
+    alternates,
+    openGraph: {
+      title,
+      description,
+      type: "profile",
+      locale: ogLocale(locale),
+      url,
+      images: profile.avatar_url ? [{ url: profile.avatar_url }] : undefined,
+    },
+    twitter: {
+      card: profile.avatar_url ? "summary" : "summary",
+      title,
+      description,
+      images: profile.avatar_url ? [profile.avatar_url] : undefined,
+    },
   };
 }
 

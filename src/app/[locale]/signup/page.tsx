@@ -1,6 +1,11 @@
+import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Card } from "@/components/ui/card";
 import { SignupForm } from "./signup-form";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function SignupPage({
   params,

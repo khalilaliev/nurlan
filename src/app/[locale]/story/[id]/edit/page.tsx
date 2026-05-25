@@ -1,8 +1,13 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/guard";
 import { EditStoryForm } from "./edit-form";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function EditStoryPage({
   params,

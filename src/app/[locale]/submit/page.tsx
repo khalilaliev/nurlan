@@ -1,9 +1,17 @@
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/guard";
 import { SubmitForm } from "./submit-form";
 import { SetupNotice } from "@/components/setup-notice";
+
+// Auth-gated form. Crawlers shouldn't see the login redirect, so we
+// flag noindex up-front rather than relying on Google to figure out
+// the redirect chain.
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function SubmitPage({
   params,

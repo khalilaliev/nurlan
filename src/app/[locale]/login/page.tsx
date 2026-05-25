@@ -1,6 +1,14 @@
+import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Card } from "@/components/ui/card";
 import { LoginForm } from "./login-form";
+
+// Auth pages: don't index, don't crawl onward links. There's nothing
+// useful here for search engines and indexing the login URL is the
+// kind of thing that ends up in "users.json" credential lists.
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function LoginPage({
   params,

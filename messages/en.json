@@ -3,6 +3,24 @@
     "name": "Nurlan",
     "tagline": "Stories the internet actually wants to read."
   },
+  "seo": {
+    "defaultTitle": "Nurlan — Stories that hit",
+    "defaultDescription": "A storytelling social network for the most interesting human experiences online. Real people, real moments, anonymously if you want.",
+    "homeTitle": "Nurlan — Stories that hit",
+    "homeDescription": "Read and share short stories worth reading. Funny, weird, painful, true. From real people, anonymous if you want.",
+    "aboutTitle": "About",
+    "aboutDescription": "What Nurlan is, why we built it, and how it works.",
+    "newsTitle": "News",
+    "newsDescription": "Updates, announcements, and what's new on Nurlan.",
+    "privacyTitle": "Privacy Policy",
+    "privacyDescription": "How Nurlan collects, uses, and protects your data.",
+    "rulesTitle": "Community Rules",
+    "rulesDescription": "How we keep stories real and the community safe.",
+    "contactTitle": "Contact",
+    "contactDescription": "Get in touch with the Nurlan team.",
+    "storyDefaultDescription": "A story on Nurlan.",
+    "profileDefaultDescription": "{username}'s profile on Nurlan."
+  },
   "nav": {
     "feed": "Feed",
     "trending": "Trending",
